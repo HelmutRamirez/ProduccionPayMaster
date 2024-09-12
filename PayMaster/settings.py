@@ -162,6 +162,6 @@ EMAIL_HOST_PASSWORD = 'krwj apcj sols uowd'  #  contraseña o clave de acceso
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_URL = '/media/photos'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/photos')
 
