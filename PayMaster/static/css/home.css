@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+
+:root {
+    --colorPrimario: #4A90E2;    /* Azul Primario */
+    --colorSecundario: #dc3545;  /* Rojo Tango */
+    --colorAcento: #F5A623;      /* Naranja de Acento */
+    --colorFondo: #F4F4F4;       /* Gris Claro de Fondo */
+    --colorTexto: #333333;       /* Negro Suave para Texto */
+    --colorEncabezado: #4A4A4A;  /* Gris Oscuro para Encabezados */
+    --colorBorde: #E0E0E0;       /* Gris Claro para Bordes */
+}
+*{
+  font-family: "Poppins", sans-serif;
+}
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: var(--colorPrimario);
+}
+
+.contenedor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+    height: 80%;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    background-color: var(--colorFondo);
+}
+.titulo{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 50px;
+}
+
+.titulo img{
+    width: 80px;
+    height: 80px;
+    margin: 10px;
+}
+.titulo p{
+    color: var(--colorEncabezado);
+    margin: 0;
+    font-size: 60px;
+    font-weight: bold;
+    letter-spacing: 0px;
+}
+
+.menu{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.opccion {
+    display: block;
+    background-color: var(--colorPrimario);
+    color: #fff;
+    text-decoration: none;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.opccion:hover {
+    background-color: var(--colorAcento);
+}
+
+button.opccion {
+    background-color: var(--colorPrimario);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+button.opccion:hover {
+    background-color: var(--colorSecundario);
+}
+
+

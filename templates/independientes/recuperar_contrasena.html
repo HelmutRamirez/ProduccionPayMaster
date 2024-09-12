@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login_in.css' %}">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">    <title>Iniciar sesión</title>
+    <title>Recuperar Contraseña</title>
+   
+</head>
+<body>
+    <div class="contenedeor">
+        <div class="logo">
+            <img src="{% static 'image/logo2.png' %}" alt="PayMaster">
+            <p>PayMaster</p>
+        </div>
+        <div class="volverB">
+            <a class="link" href="{% url 'login' %}">Volver</a>
+        </div>
+        <div class="login">
+            <p id="titulo">Recuperar mi Contraseña</p>
+
+            <form class="formulario" method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="button">
+                    <button class="boton"  type="submit">Enviar solicitud</button>
+                </div>
+            </form>
+            
+            <a class="link" href="{% url 'password_reset' %}" >Tengo token</a>
+        </div>
+    </div>
+</body>
+</html>

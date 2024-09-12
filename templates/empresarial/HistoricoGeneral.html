@@ -1,0 +1,84 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Todos los Cálculos</title>
+    <link rel="stylesheet" type="text/css" href="{% static './css/tablas.css' %}">
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Todos los Cálculos</h1>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Salud</th>
+                    <th>Pensión</th>
+                    <th>ARL</th>
+                    <th>Transporte</th>
+                    <th>Salario Base</th>
+                    <th>Caja Compensación</th>
+                    {% if calculo.sena %}
+                    <th>SENA</th>
+                    {% endif %}
+                    {% if calculo.icbf %}
+                    <th>ICBF</th>
+                    {% endif %}
+                    <th>Fecha de Cálculo</th>
+                 
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+
+             
+
+                {% for calculo in calculos %}
+                        
+                <tr>
+                    <td>{{ calculo.documento }}</td>
+                    <td>{{ calculo.salud }}</td>
+                    <td>{{ calculo.pension }}</td>
+                    <td>{{ calculo.arl }}</td>
+                    <td>{{ calculo.transporte }}</td>
+                    <td>{{ calculo.salarioBase }}</td>
+                        {% if calculo.cajaCompensacion %}
+                    <td>{{ calculo.cajaCompensacion }}</td>
+                         {% endif %}
+                            {% if calculo.sena %}
+                    <td>{{ calculo.sena }}</td>
+                             {% endif %}
+                        {% if calculo.icbf %}
+                    <td>{{ calculo.icbf }}</td>
+                        {% endif %}
+                    <td>{{ calculo.fecha_calculos }}</td>
+                   
+                    <td> <a class="a" href="{% url 'verNomina' documento=calculo.documento.numero_identificacion fecha=calculo.fecha_calculos %}">Ver nomina</a>
+                       
+                    </td>
+                </tr>
+               
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        
+        <div class="volverB">
+            {% if request.session.permisos == 'Contador' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'Admin' %}
+            <a class="a" href="{% url 'ListarEmpleados' nit=empleado.empresa.nit %}">Volver a empleados</a>
+            {% endif %}
+       
+        </div>
+        <div class="volverB">
+            {% if request.session.permisos == 'Empleado General' %}
+        <a class="a" href="{% url 'homeEmpleado' empleado.numero_identificacion %}">Volver al home </a>
+            {% endif %}
+        </div>
+        <a class="link" href="{% url 'ListarEmpresa' %}" class="btn btn-info">Volver empresa</a>
+    </div>
+    
+</body>
+</html>

@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+
+:root {
+    --colorPrimario: #4A90E2;    /* Azul Primario */
+    --colorSecundario: #dc3545;  /* Rojo Tango */
+    --colorAcento: #F5A623;      /* Naranja de Acento */
+    --colorFondo: #F4F4F4;       /* Gris Claro de Fondo */
+    --colorTexto: #333333;       /* Negro Suave para Texto */
+    --colorEncabezado: #4A4A4A;  /* Gris Oscuro para Encabezados */
+    --colorBorde: #E0E0E0;       /* Gris Claro para Bordes */
+}
+*{
+  font-family: "Poppins", sans-serif;
+}
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: var(--colorPrimario);
+}
+.contenedor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 50%;
+  height: 90%;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  background-color: var(--colorFondo);
+}
+
+form{
+  width: 80%;
+}
+
+label {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: var(--colorTexto);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="file"],
+select{
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  color: var(--colorTexto);
+  border: none;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  background-color: var(--colorPrimario);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 16px;
+  letter-spacing: 1px;
+  font-weight: 600;
+  padding: 10px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.1);
+}
+  
+button:hover {
+  color: white;
+  background-color: var(--colorAcento);
+  transition: background-color 0.3s ease;
+  cursor: pointer;
+  transform: scale(1.1); 
+}
+.link{
+  display: flex;
+  align-items: end;
+  text-decoration: none;
+  justify-content: center; 
+  color: var(--colorTexto);
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 30px 0;
+  position: relative;
+}
+.link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 3px; 
+  background-color: var(--colorAcento); 
+  transition: width 0.3s ease-in-out;
+}
+.link:hover::after {
+  width: 100%;
+}
+.link:hover {
+  color: var(--colorAcento);
+}
+
+
+.errorlist {
+    display: none;
+}
+
+@media (max-width: 768px) {
+  .contenedor {
+      width: 100%;
+      padding: 10px;
+  }
+
+  button {
+      font-size: 14px;
+      padding: 8px;
+  }
+}

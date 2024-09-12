@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+
+:root {
+    --colorPrimario: #4A90E2;    /* Azul Primario */
+    --colorSecundario: #dc3545;  /* Rojo Tango */
+    --colorAcento: #F5A623;      /* Naranja de Acento */
+    --colorFondo: #F4F4F4;       /* Gris Claro de Fondo */
+    --colorTexto: #333333;       /* Negro Suave para Texto */
+    --colorEncabezado: #4A4A4A;  /* Gris Oscuro para Encabezados */
+    --colorBorde: #E0E0E0;       /* Gris Claro para Bordes */
+}
+
+*{
+  font-family: "Poppins", sans-serif;
+}
+body{
+    margin: 0 0 0 0;
+    padding: 0;
+}
+
+.menu{
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.2);
+    position: fixed;
+    width: 100%;
+    height: 90px;
+}
+.logo{
+    width: 60px;
+    margin: 5px;
+}
+.encabezados {
+    display: flex;
+    gap: 50px;
+}
+
+.link {
+    text-decoration: none;
+    color: var(--colorEncabezado);
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    position: relative;
+}
+.boton{
+    text-decoration: none;
+    color: white;
+    background-color: #4A90E2;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.1);
+}
+/*------------------------*/
+.contenedor{
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    justify-content: center;
+    align-items: center;
+    padding: 150px 100px 150px 100px;
+}
+
+.info p:nth-child(1){
+    color: var(--colorEncabezado);
+    font-size: 50px;
+    font-weight: bold;
+    letter-spacing: -2px;
+    border-bottom: var(--colorPrimario) solid 3px;
+}
+.info p:nth-child(2){
+    color: var(--colorTexto);
+    font-size: 25px;
+    letter-spacing: 2px;
+    line-height: 40px;
+}
+.imagen img{
+    width: 600px;
+}
+/*------------------------*/
+.contacto{
+    display: flex;
+    align-items: center;
+    margin: 20px;
+}
+.contacto img{
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+}
+/*------------------------*/
+.pie{
+    background-color: var(--colorPrimario);
+    margin-top: 100px;
+    position: absolute;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.pie1{
+    margin: 50px;
+}
+.pie2{
+    margin-right: 300px;
+}
+.pie1 p:nth-child(1){
+    color: var(--colorTexto);
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+.pie1 p:nth-child(2),
+.pie2 p{
+    color: var(--colorTexto);
+    font-size: 16px;
+    letter-spacing: 2px;
+}
+.boton:hover {
+    color: white;
+    background-color: var(--colorAcento);
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    transform: scale(1.1); 
+}
+
+.link::after {
+    content: '';
+    position: absolute;
+    bottom: 10px; 
+    left: 0;
+    width: 0;
+    height: 3px; 
+    background-color: var(--colorAcento); 
+    transition: width 0.3s ease-in-out;
+}
+.link:hover::after {
+    width: 100%;
+}
+.link:hover {
+    color: var(--colorAcento);
+}
+
+
+
+
+/* cookies*/
+
+
+
+
+.modal {
+    position: fixed;
+    z-index: 9;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.81);
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--colorPrimario);
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, Helvetica, sans-serif;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+.modal-content h2 {
+    color: var(--colorAcento);
+    font-size: 2rem;
+}
+
+.modal-content p {
+    color: #e4e4e4;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.cookies-btn {
+    height: 8vh;
+    width: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.cookies-btn a {
+    color: #e4e4e4;
+    border: #e4e4e4 2px solid;
+    border-radius: 20px;
+    display: inline-block;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
+}
+
+.cookies-btn a:hover {
+    background-color: #e4e4e4;
+    color: var(--colorPrimario);
+    transform: scale(1.1);
+}

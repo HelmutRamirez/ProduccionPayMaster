@@ -1,0 +1,43 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fomularios.css' %}" />
+    <title>Registro Contrato</title>  
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Registro  Contrato</h2>
+        {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+          {% endif %}
+
+        {% if form.errors %}
+            <div style="color: red;">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <p>{{ error }}</p>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+        {% endif %}
+        <form action= "{% url 'registContrat' id_empleado %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" id="btnEnviar" class=button>Crear Contrato</button>
+        </form> 
+        <a class="link" href="{% url 'ListarEmpleados' empresa %}">Volver al home empleados</a>
+
+        <a class="link" href="{% url 'ListarEmpresa' %}">Volver al home empresa</a>
+    </div>
+</body>
+</html>

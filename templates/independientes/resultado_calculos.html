@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tablas.css' %}">
+    <title>Resultados de Cálculos</title>
+</head>
+<body>
+    <div class="contenedor">
+        <h2>Resultados de Cálculos para {{ independiente.primer_nombre }} {{ independiente.primer_apellido }}</h2>
+        
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Salario Base</td>
+                    <td>{{ salario_base }}</td>
+                </tr>
+                <tr>
+                    <td>Ingreso Base Cotización</td>
+                    <td>{{ ibc }}</td>
+                </tr>
+                <tr>
+                    <td>Salud</td>
+                    <td>{{ salud }}</td>
+                </tr>
+                <tr>
+                    <td>Pensión</td>
+                    <td>{{ pension }}</td>
+                </tr>
+                <tr>
+                    <td>Aseguradora de Riesgos Laborales</td>
+                    <td>{{ arl }}</td>
+                </tr>
+                <tr>
+                    <td>Caja de Compensación Familiar</td>
+                    <td>{{ ccf }}</td>
+                </tr>
+                {% comment %} <tr>
+                    <td>Fondo Solidario de Pensión</td>
+                    <td>{{ fsp }}</td>
+                </tr> {% endcomment %}
+            </tbody>
+        </table>
+        
+        <a class="link" href="{% url 'homeIndependiente' %}">Volver</a>
+    </div>
+</body>
+</html>

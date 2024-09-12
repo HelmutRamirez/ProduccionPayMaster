@@ -1,0 +1,88 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado de Cálculo</title>
+    <link rel="stylesheet" type="text/css" href="{% static './css/tablas.css' %}">
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Resultado de Cálculo {{ transporte }}</h1>
+
+        <!-- Tabla de Devengos -->
+        <h2>Devengos</h2>
+        <table>
+            <tr>
+                <th>Transporte</th>
+                <th>Cesantías</th>
+                <th>Intereses de Cesantías</th>
+                <th>Antiguedad</th>
+                <th>Vacaciones</th>
+                <th>Días de Vacaciones</th>
+                <th>Horas Extras Diurnas</th>
+                <th>Horas Extras Nocturnas</th>
+                <th>Horas Extras Diurnas Festivas</th>
+                <th>Horas Extras Nocturnas Festivas</th>
+            </tr>
+            <tr>
+                <td>{{ transporte|floatformat:"0" }}</td>
+                <td>{{ cesantias|floatformat:"0" }}</td>
+                <td>{{ intereses_cesantias|floatformat:"0" }}</td>
+
+                <td>Ingreso:{{ dias_trabajados }},{{ dias_antiguedad }}dias de antiguedad</td>
+
+                <td>{{ valor_vacaciones|floatformat:"0" }}</td>
+                <td>{{ dias_vacaciones|floatformat:"0" }}</td>
+                <td>{{ valor_horas_extras.diurna|floatformat:"0" }}</td>
+                <td>{{ valor_horas_extras.nocturna|floatformat:"0" }}</td>
+                <td>{{ valor_horas_extras.diurna_festiva|floatformat:"0" }}</td>
+                <td>{{ valor_horas_extras.nocturna_festiva|floatformat:"0" }}</td>
+            </tr>
+        </table>
+
+        <!-- Tabla de Deducciones -->
+        <h2>Deducciones</h2>
+        <table>
+            <tr>
+                <th>Salud</th>
+                <th>Pensión</th>
+            </tr>
+            <tr>
+                <td>{{ salud|floatformat:"0" }}</td>
+                <td>{{ pension|floatformat:"0" }}</td>
+            </tr>
+        </table>
+
+        <!-- Tabla de Pagos que realiza la Empresa -->
+        <h2>Pagos que realiza la Empresa</h2>
+        <table>
+            <tr><th>Salud</th>
+                <th>Pension</th>
+                <th>ARL</th>
+                <th>SENA</th>
+                <th>ICBF</th>
+                <th>Caja de Compensación</th>
+            </tr>
+            <tr>
+                <td>{{ salud_empeador|floatformat:"0" }}</td>
+                <td>{{ pension_empleador|floatformat:"0" }}</td>
+                <td>{{ arl|floatformat:"0" }}</td>
+                <td>{{ sena|floatformat:"0" }}</td>
+                <td>{{ ICBF|floatformat:"0" }}</td>
+                <td>{{ CajaCompensa|floatformat:"0" }}</td>
+            </tr>
+        </table>
+        <h2>Total a pagar</h2>
+        <table>
+
+            <tr>
+                <td>{{ salario_total|floatformat:"0" }}</td>
+            </tr>
+        </table>
+        <br>
+        <a class="a" href="{% url 'ListarEmpleados' empresa %}">Volver a la lista de empleados</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fomularios.css' %}" />
+    <title>Registro de Novedades</title>
+  </head>
+  <body>
+    {% if request.session.estadoSesion %}
+      {% if request.session.permisos == 'RRHH' %}
+        <div class="contenedor">
+          <h2>REGISTRO NOVEDADES</h2>
+
+          {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+          {% endif %}
+
+          {% if formularioNov.errors %}
+            <div style="color: red;">
+              {% for field in formularioNov %}
+                {% for error in field.errors %}
+                  <p>{{ error }}</p>
+                {% endfor %}
+              {% endfor %}
+              {% for error in formularioNov.non_field_errors %}
+                <p>{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <form method="POST">
+            {% csrf_token %}
+            {{ formularioNov.as_p }}
+            <button type="submit">Registrar</button>
+          </form>
+          <div class="volverB">
+            <a class="link" href="{% url 'ListarEmpleados' empleado.empresa.nit %}">Volver</a>
+          </div>
+        </div>
+      {% else %}
+        <h1>El usuario no tiene permisos</h1>
+        <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
+      {% endif %}
+    {% else %}
+      <h1>El usuario no ha iniciado sesión</h1>
+      <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
+    {% endif %}
+  </body>
+</html>

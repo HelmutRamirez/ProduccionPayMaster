@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="{% static 'css/tablas.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
+    <title>Empleados</title>
+  </head>
+
+  <body>
+    <div class="contenedor">
+      {% if request.session.estadoSesion %}
+        {% if request.session.permisos == 'RRHH' or request.session.permisos == 'Admin' %}
+          <h1>Lista de candidatos para {{ empresa.razon_social }}</h1>
+          <h3>Id empleado: {{ request.session.numero_identificacion_e }}</h3>
+          <h3>Rol: {{ request.session.permisos }}</h3>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Identificación</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Imagen</th>
+                <th>Estudios</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for empleados in get_empleados %}
+                <tr>
+                  <td>{{ empleados.numero_identificacion_e }}</td>
+                  <td>{{ empleados.primer_nombre }} {{ empleado.empleado.primer_apellido }}</td>
+               
+                  <td>{{ empleados.correo }}</td>
+                  <td>
+                    <img src="{{ empleados.imagen_empleado.url }}" alt="Imagen" width="50" />
+                  </td>
+                  <td>{{ empleados.id_nivel_estudio }}</td>
+                  <td>
+                    {% if request.session.permisos == 'RRHH' %}
+                      <a class="a" href="{% url 'contratacion'  empleados.numero_identificacion_e empresa.nit %}">Contratar empleado</a>
+                    {% endif %}
+                    
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <div class="volverB">
+            <a class="link" href="{% url 'ListarEmpleados' empresa.nit %}">Volver</a>
+            
+          </div>
+              
+        {% else %}
+          <h1>El usuario no tiene permisos suficientes</h1>
+        {% endif %}
+      {% else %}
+        <h1>El usuario no ha iniciado sesión</h1>
+        <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
+      {% endif %}
+    </div>
+  </body>
+</html>

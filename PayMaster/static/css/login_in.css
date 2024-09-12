@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css?family=Poppins');
+:root {
+  --colorPrimario: #4A90E2;    /* Azul Primario */
+  --colorSecundario: #dc3545;  /* Rojo Tango */
+  --colorAcento: #F5A623;      /* Naranja de Acento */
+  --colorFondo: #F4F4F4;       /* Gris Claro de Fondo */
+  --colorTexto: #333333;       /* Negro Suave para Texto */
+  --colorEncabezado: #4A4A4A;  /* Gris Oscuro para Encabezados */
+  --colorBorde: #E0E0E0;       /* Gris Claro para Bordes */
+}
+*{
+    font-family: "Poppins", sans-serif;
+}
+
+body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(105deg, var(--colorFondo) 50%, var(--colorPrimario) 50%);
+}
+.contenedeor{
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    width: 80%;
+    height: 80%;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    background: linear-gradient(105deg, var(--colorFondo) 50%, var(--colorPrimario) 50%);
+}
+.logo{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.logo img{
+    width: 300px;
+}
+.logo p{
+    color: var(--colorPrimario);
+    margin: 0;
+    font-size: 60px;
+    font-weight: bold;
+    letter-spacing: -2px;
+}
+.login,
+.button{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 30px 0;
+}
+#titulo{
+    color: var(--colorTexto);
+    margin: 0;
+    font-size: 30px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.formulario{
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+}
+.login label{
+    color: var(--colorTexto);
+    font-size: 16px;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+input[type=number],
+input[type=password],
+input[type=text]{
+    background: none; 
+    color: var(--colorTexto);
+    border: 0;
+    padding: 10px;
+    font-size: 16px;
+    width: 100%;
+    background-size: 40px; 
+    background-repeat: no-repeat;
+    background-position: 0px center; 
+    padding-left: 45px;
+    outline: none;
+    border-bottom: 3px solid var(--colorFondo);
+}
+
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number]{background-image: url('../image/usuario.png');}
+input[type=password]{background-image: url('../image/contrasena.png');}
+input[type=text]{background-image: url('../image/llave1.png');}
+
+.boton{
+    text-decoration: none;
+    color: var(--colorPrimario);
+    background-color: white;
+    font-size: 16px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    padding: 10px;
+    border: 0;
+    border-radius: 5px;
+    box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.1);
+}
+.boton:hover {
+    color: white;
+    background-color: var(--colorAcento);
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+    transform: scale(1.1); 
+}
+
+.volverB{
+    display: flex;
+    align-items: end;
+    height: 100%;
+}
+.link{
+    display: flex;
+    align-items: end;
+    text-decoration: none;
+    justify-content: center; 
+    color: var(--colorTexto);
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding-bottom: 30px;
+    position: relative;
+}
+.link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 0;
+    height: 3px; 
+    background-color: var(--colorAcento); 
+    transition: width 0.3s ease-in-out;
+}
+.link:hover::after {
+    width: 100%;
+}
+.link:hover {
+    color: var(--colorAcento);
+}

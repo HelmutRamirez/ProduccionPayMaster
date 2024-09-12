@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/login_de.css' %}">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">
+    <title>Iniciar sesión</title>
+</head>
+<body>
+    <div class="contenedeor">
+        <div class="logo">
+            <img src="{% static 'image/logo1.png' %}" alt="PayMaster">
+            <p>PayMaster</p>
+        </div>
+        <div class="volverB">
+            <a class="link volver" href="{% url 'menu' %}">Volver</a>
+        </div>
+        <div class="login">
+            <p id="titulo">Iniciar sesión</p>
+            {% if messages %}
+                <div>
+                    {% for message in messages %}
+                        <p>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <form class="formulario" method="post">
+                {% csrf_token %}
+                <label for="id_numero_identificacion">Número de identificación:</label>
+                <input type="number"  id="id_numero_identificacion" name="numero_identificacion" required>
+                
+                <label for="id_contrasena">Contraseña:</label>
+                <input type="password" id="id_contrasena" name="contrasena"  required>
+                
+                <div class="button">
+                    <button class="boton" type="submit">Iniciar sesión</button>
+                </div>
+                
+            </form>
+            
+            <a class="link" href="{% url 'recuperar_contrasena_empre' %}"">Recuperar contraseña</a>
+        </div>
+    </div>
+</body>
+</html>

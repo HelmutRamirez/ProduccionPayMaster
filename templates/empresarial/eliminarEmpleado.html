@@ -1,0 +1,26 @@
+{% load static %}
+{% load crispy_forms_tags %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Menú de Inicio</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{%static 'css/bootstrap.min.css'%}" 
+    >
+</head>
+<body>
+    <h1>Eliminar Usuario</h1>
+    <form action= "{% url 'eliminaremple' empleado.numero_identificacion %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        {% comment %} {{ form }} {% endcomment %}
+        <button type="submit" id="btnEnviar" class=button>ENVIAR</button>
+    </form> 
+
+
+</body>
+</html>

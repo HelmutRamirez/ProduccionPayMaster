@@ -1,0 +1,44 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/fomularios.css' %}" />
+    
+
+    <title>Editar Empleado</title>
+  </head>
+  <body>
+    {% if request.session.estadoSesion %}
+      {% if request.session.permisos == 'RRHH' or request.session.permisos == 'Admin' %}
+        <div class="contenedor">
+          <h1>Editar Empleado</h1>
+          
+          <form action="{% url 'actualizarEmpleado' numero_identificacion_e %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" id="btnEnviar" class="button">Modificar</button>
+          </form>
+          <div class="volverB">
+            <a class="link" href="{% url 'ListarEmpleados' empleado.nit.nit %}">Volver</a> 
+          </div>
+        </div>
+      {% else %}
+        <h1>El usuario no tiene permisos</h1>
+        <div class="volverB">
+           <br>
+              <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>    
+      </div>
+   
+      {% endif %}
+    {% else %}
+      <h1>El usuario no ha iniciado sesión</h1>
+      <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
+    {% endif %}
+  </body>
+</html>

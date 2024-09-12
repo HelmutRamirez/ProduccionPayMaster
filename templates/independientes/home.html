@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'css/tablas.css' %}">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">
+    <title>Permisos del Usuario</title>
+</head>
+<body>
+    <div class="contenedor">
+        {% if request.session.estadoSesion %}
+            {% if request.session.permisos == 'Independiente' %}
+
+                {% if independi %}
+                    <h1>Bienvenido {{ independi.primer_nombre }}</h1>
+                    
+                    <table>
+                        <tr>
+                            <th>Identificación</th>
+                            <th>Nombre</th>
+                            <th>Celular</th>
+                            <th>Imagen</th>
+                            <th colspan='2'>Acción</th>
+                        </tr>
+                        <tr>
+                            <td>{{ independi.numero_identificacion }}</td>
+                            <td>{{ independi.primer_nombre }} {{ independi.primer_apellido }}</td>
+                            <td>{{ independi.celular }}</td>
+                            <td><img src="{{ independi.imagen.url }}" alt="Imagen" width="50"></td>
+                            <td>
+                                <a class="a" href="{% url 'editarIndependiente' independi.numero_identificacion %}">Editar datos</a>
+                                <a class="a" href="#" onclick="confirmDelete(event, '{% url 'eliminaremple' independi.numero_identificacion %}')">Eliminar</a>
+                                <a class="a" href="{% url 'calcularinde' independi.numero_identificacion %}">Calcular</a>
+                                {% comment %} <a class="a" href="{% url 'todos_los_calculos' independi.numero_identificacion %}">Ver nomina</a>
+                            {% endcomment %}
+                        </td> 
+                        </tr>
+                    </table>
+
+                    <form id="logout-form" method="POST" action="{% url 'cerrar_sesion_redirect' %}">
+                        {% csrf_token %}
+                        <button class="link cerrar" type="submit">Cerrar Sesión</button>
+                    </form>
+                </div>
+                    
+                {% else %}
+                    <a class="link" href="{% url 'registrarIndependiente' %}">El usuario {{ request.user.username }} no tiene cuenta de Independiente</a>
+                {% endif %}
+
+            {% else %}
+                <h1>El usuario no tiene permisos</h1>
+            {% endif %}
+        {% else %}
+            <h1>El usuario no ha iniciado sesión</h1>
+        {% endif %}
+
+    <script>
+        function confirmDelete(event, url) {
+            event.preventDefault();
+            if (confirm("¿Está seguro de que desea eliminar este registro?")) {
+                window.location.href = url;
+            }
+        }
+
+        window.addEventListener('popstate', function(event) {
+            // Prevenir el comportamiento por defecto
+            event.preventDefault();
+    
+            // Enviar la solicitud POST para cerrar sesión
+            fetch('{% url "cerrar_sesion" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({})
+            }).then(response => {
+                if (response.ok) {
+                    // Redirigir a la página de inicio de sesión después de cerrar sesión
+                    window.location.href = '{% url "login" %}';
+                }
+            }).catch(error => {
+                console.error('Error al cerrar sesión:', error);
+                // Opcional: Manejar errores si es necesario
+            });
+        });
+    </script>
+</body>
+</html>

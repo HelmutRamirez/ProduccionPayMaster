@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado de Cálculo</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tablas.css' %}">
+</head>
+<body>
+    <div class="contenedor">
+        <h3>Resultado de Cálculo nomina:  {{ empleado.primer_nombre }}  {{ empleado.primer_apellido }} fecha:  {{ fecha }}</h3>
+
+        <!-- Tabla de Devengos -->
+        <h2>Devengos</h2>
+        <table>
+            <tr>
+                <th>Transporte</th>
+                <th>Cesantías</th>
+                <th>Intereses de Cesantías</th>
+                <th>Vacaciones</th>
+                <th>Días de Vacaciones</th>
+                <th>Horas Extras Diurnas</th>
+                <th>Horas Extras Nocturnas</th>
+                <th>Horas Extras Diurnas Festivas</th>
+                <th>Horas Extras Nocturnas Festivas</th>
+            </tr>
+            <tr>
+                <td>{{ transporte }}</td>
+                <td>{{ cesantias }}</td>
+                <td>{{ intereses_cesantias }}</td>
+                <td>{{ valor_vacaciones }}</td>
+                <td>{{ dias_vacaciones }}</td>
+                <td>{{ HorasExDiu }}</td>
+                <td>{{ HorasExNoc }}</td>
+                <td>{{ HorasExFestivaDiu }}</td>
+                <td>{{ HorasExFestivaNoc }}</td>
+            </tr>
+        </table>
+
+        <!-- Tabla de Deducciones -->
+        <h2>Deducciones</h2>
+        <table>
+            <tr>
+                <th>Salud</th>
+                <th>Pensión</th>
+            </tr>
+            <tr>
+                <td>{{ salud }}</td>
+                <td>{{ pension }}</td>
+            </tr>
+        </table>
+
+        <!-- Tabla de Pagos que realiza la Empresa -->
+        <h2>Pagos que realiza la Empresa</h2>
+        <table>
+            <tr>
+                <th>ARL</th>
+                <th>SENA</th>
+                <th>ICBF</th>
+                <th>Caja de Compensación</th>
+            </tr>
+            <tr>
+                <td>{{ arl }}</td>
+                <td>{{ sena }}</td>
+                <td>{{ ICBF }}</td>
+                <td>{{ CajaCompensa }}</td>
+            </tr>
+        </table>
+
+        <!-- Total a pagar -->
+        <h2>Total a pagar</h2>
+        <table>
+            <tr>
+                <td>{{ salario_total }}</td>
+            </tr>
+        </table>
+
+        <br>
+        <div class="volverB">
+            <a class="link" href="{% url 'ListarEmpresa' %}">Volver</a>
+          </div>
+
+    </div>
+</body>
+</html>

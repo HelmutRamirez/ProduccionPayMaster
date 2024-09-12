@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon">
+    <title>Menu</title>
+</head>
+<body>
+    <div class="contenedor"">
+
+        <div class="titulo">
+            <img src="{% static 'image/logo2.png' %}" alt="PayMaster">
+            <p>Bienvenido a PayMaster, seleccione una opcción</p>
+            <img src="{% static 'image/logo2.png' %}" alt="PayMaster">
+        </div>
+
+        <div class="menu">
+
+            <a class="opccion" href="{% url 'login' %}"><div>
+                <p class="boton">Independiente</p>
+                <p class="descripcion">Trabajas por tu cuenta.</p>
+            </div></a>
+
+            <a class="opccion" href="{% url 'loginEmpresa' %}"><div>
+                <p class="boton">Dependiente</p>
+                <p class="descripcion">Trabajas para una empresa.</p>
+            </div></a>
+        </div>
+
+        <a class="link" href="{% url 'homeGeneral' %}">Volver</a>
+
+    </div>
+</body>
+</html>
