@@ -142,14 +142,12 @@ LANGUAGES = [
 ]
 
 
-STATIC_URL = '/static/'
-
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directorio donde se recogerán los archivos estáticos en producción
-    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-else:
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'PayMaster/static')]  # Directorio donde están los archivos estáticos en desarrollo
-    
+STATIC_URL = 'static/'
+STATIC_ROOT=BASE_DIR
+STATICFILES_DIRS=[
+    "PayMaster/static",
+]
+  
     
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
