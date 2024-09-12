@@ -15,7 +15,7 @@ import os
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -140,16 +140,16 @@ USE_TZ = True
 LANGUAGES = [
     ('es', 'Spanish'),
 ]
-STATIC_URL = 'static/'
+
+
+STATIC_URL = '/static/'
+
 if not DEBUG:
-    STATIC_ROOT=os.path.join(BASE_DIR,'staticfiles')
-    STATICFILES_STORAGE='whitenoise.storage.CompressedManifestStaticFilesStorage'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Directorio donde se recogerán los archivos estáticos en producción
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'PayMaster/static')]  # Directorio donde están los archivos estáticos en desarrollo
     
-else: 
-    STATIC_ROOT=BASE_DIR
-    STATICFILES_DIRS=[
-        "PayMaster/static",
-    ]
     
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -164,5 +164,5 @@ EMAIL_HOST_PASSWORD = 'krwj apcj sols uowd'  #  contraseña o clave de acceso
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_ROOT=BASE_DIR /'media'
-MEDIA_URL='/media/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

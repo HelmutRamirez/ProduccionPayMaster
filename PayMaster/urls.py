@@ -27,4 +27,4 @@ urlpatterns = [
     path("empresarial/", include ('Empresarial.urls')),
     path("independiente/", include ('Independientes.urls')),
     
-]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
