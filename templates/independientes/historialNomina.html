@@ -5,6 +5,62 @@
     <meta charset="UTF-8">
     <title>Resultado de Cálculo</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/tablas.css' %}">
+    <script>
+        var idleTime = 0
+        
+        function timerIncrement() {
+          idleTime++
+          if (idleTime > 4) {
+            alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
+            window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
+          }
+        }
+        
+        $(document).ready(function () {
+          var idleInterval = setInterval(timerIncrement, 5000)
+        
+          $(this).mousemove(function (e) {
+            idleTime = 0
+            keepSessionAlive()
+          })
+          $(this).keypress(function (e) {
+            idleTime = 0
+            keepSessionAlive()
+          })
+        })
+        
+        function keepSessionAlive() {
+          $.get("{% url 'keep_session_alive' %}")
+        }
+        
+        window.addEventListener('popstate', function (event) {
+          // Prevenir el comportamiento por defecto
+          event.preventDefault()
+        
+          // Mostrar alerta antes de cerrar sesión
+          alert('Su sesión ha expirado. Será redirigido para Iniciar sesión.')
+        
+          // Enviar la solicitud POST para cerrar sesión
+          fetch('{% url "cerrar_sesion_redirect_e" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({})
+          })
+            .then((response) => {
+              if (response.ok) {
+                // Redirigir a la página de inicio de sesión después de cerrar sesión
+                window.location.href = '{% url "loginEmpresa" %}'
+              }
+            })
+            .catch((error) => {
+              console.error('Error al cerrar sesión:', error)
+              // Opcional: Manejar errores si es necesario
+            })
+        })
+      </script>
 </head>
 <body>
     <div class="contenedor">

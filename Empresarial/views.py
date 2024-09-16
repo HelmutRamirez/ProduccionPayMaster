@@ -7,8 +7,8 @@ from django.db.models import Sum,Q
 from django.utils import timezone # type: ignore
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View # type: ignore
-from Empresarial.forms import ContratoForm, CrearUsuarioForm, EmpresaForm, EmpleadoForm,LoginForm, PasswordResetForm, PorcentajesLegalesForm,RecuperarContrasenaForm,HorasExtrasRecargos, UsuarioForm
-from .models import Cargo, Contrato, Empresa, Empleado, PorcentajesLegales, Usuarios, Liquidacion,PasswordResetRequest, vacacionesCesantias
+from Empresarial.forms import CargoForm, ContratoForm, CrearUsuarioForm, EmpresaForm, EmpleadoForm,LoginForm, NivelGradoForm, PasswordResetForm, PorcentajesLegalesForm,RecuperarContrasenaForm,HorasExtrasRecargos, UsuarioForm
+from .models import Cargo, Contrato, Empresa, Empleado, NivelGrado, PorcentajesLegales, Usuarios, Liquidacion,PasswordResetRequest, vacacionesCesantias
 from django.core.mail import send_mail # type: ignore
 from django.template.loader import render_to_string # type: ignore
 from django.utils.html import strip_tags # type: ignore
@@ -218,6 +218,14 @@ class Paginas(HttpRequest):
             return redirect('loginEmpresa')  # Redirige a 'loginEmpresa' si no existe el perfil del empleado
 
 class GestionEmpleado(HttpRequest):
+    
+    def ListarTodosEmpleados(request):
+        get_empleados = Empleado.objects.all()
+       
+        return render(request, 'empresarial/todosEmpleados.html', {'get_empleados': get_empleados})
+        # Renderiza la lista de empresas ('listarEmpresa.html')
+    
+    
    
     def crearEmpleado(request, nit):
         empresa = get_object_or_404(Empresa, nit=nit)  
@@ -271,16 +279,29 @@ class GestionEmpleado(HttpRequest):
         empleado.save() 
         
         return redirect('empleadoss',nit)
-    def EliminarEmpleado(request, numero_identificacion_e, nit):
+    #########################################################
+    
+    def eliminarEmpleado(request, numero_identificacion_e):
     
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
-        empresa = Empresa.objects.get(nit=nit)
         
-        empleado.nit = empresa
-        empleado.save() 
+        # Eliminar el empleado
+        empleado.delete()
         
-        return redirect('empleadoss',nit)       
-            
+        return redirect('listarTodosEmpleados') 
+    
+          
+    def DesvincularEmpelado(request, numero_identificacion_e):
+        empleado = Empleado.objects.get(pk=numero_identificacion_e)
+        empresa = empleado.nit.nit
+        empleado.nit= None
+        empleado.save()  
+        usuario=Usuarios.objects.get(usuario=numero_identificacion_e)
+        usuario.estado_u=False
+        usuario.save()
+        return redirect('ListarEmpleados', nit=empresa)  
+    
+    
         
     def ListarEmpleados(request, nit):
         try:
@@ -293,27 +314,33 @@ class GestionEmpleado(HttpRequest):
             empleados_con_antiguedad = []
             for empleado in get_empleados:
                 try:
-                    # Intenta obtener el contrato más reciente del empleado
-                    contrato = empleado.contrato_set.latest('fecha_inicio')
-                    fecha_ingreso = contrato.fecha_inicio
-                    estado_contrato = contrato.estado
+                    # Filtra los contratos activos del empleado para la empresa y obtiene el más reciente
+                    contrato_activo = Contrato.objects.filter(
+                        numero_identificacion_e=empleado,
+                        empresa=empresa,
+                        estado='Activo'
+                    ).latest('fecha_inicio')  # Asegúrate de tener contratos activos
                     
-                    # Calcula los días trabajados y la antigüedad
-                    a, b, antiguedad_dias = CalculosGenerales.diasTrabajados(fecha_ingreso)
+                    # Extrae la información del contrato
+                    estado_contrato = contrato_activo.estado
+                    numero_identificacion = contrato_activo.numero_identificacion_e.numero_identificacion_e
+                    
+                    # Calcula la antigüedad solo si es necesario
+                    a, b, antiguedad_dias = CalculosGenerales.diasTrabajados(contrato_activo.fecha_inicio)
                     
                     empleados_con_antiguedad.append({
                         'empleado': empleado,
-                        'ingreso': fecha_ingreso,
                         'antiguedad': antiguedad_dias,
-                        'estado': estado_contrato
+                        'estado': estado_contrato,
+                        'numero_identificacion': numero_identificacion  # Añadido
                     })
                 except Contrato.DoesNotExist:
-                    # Si no hay contratos, agrega un registro con 'Sin informacion'
+                    # Si no hay contratos activos, agrega un registro con 'Sin informacion'
                     empleados_con_antiguedad.append({
                         'empleado': empleado,
-                        'ingreso': 'Sin informacion',
                         'antiguedad': 'Sin informacion',
-                        'estado': 'Sin informacion'
+                        'estado': 'Sin informacion',
+                        'numero_identificacion': 'Sin informacion'  # Añadido
                     })
             
             data = {
@@ -322,23 +349,12 @@ class GestionEmpleado(HttpRequest):
             }
             
             return render(request, 'empresarial/listarEmpleado.html', data)
-        
         except Empresa.DoesNotExist:
-            # Manejar el caso donde la empresa no existe
-            return render(request, 'empresarial/error.html', {'mensaje': 'Empresa no encontrada'})
+            # Manejo del error si la empresa no existe
+            return HttpResponse("La empresa con el NIT proporcionado no existe.")
 
-    
-        except Empresa.DoesNotExist:
-            # Maneja el caso en el que no se encuentra la empresa
-            return HttpResponse("Empresa no encontrada", status=404)
-        except Exception as e:
-            # Maneja otros posibles errores
-            return HttpResponse(f"Error: {str(e)}", status=500)
 
-                # Renderiza la lista de empleados ('listarEmpleado.html')
-        except Empresa.DoesNotExist:
-            return HttpResponseNotFound("La empresa solicitada no existe.")
-    
+            
     def editarEmpleado(request, numero_identificacion_e):
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
         formulario = EmpleadoForm(instance=empleado)
@@ -357,46 +373,40 @@ class GestionEmpleado(HttpRequest):
         
         return redirect('ListarEmpleados', empresa)
     
-    def eliminarEmpleado(request, numero_identificacion_e):
-        empleado = Empleado.objects.get(pk=numero_identificacion_e)
-        empresa = empleado.nit.nit
-        empleado.nit= None
-        empleado.save()  
-        usuario=Usuarios.objects.get(usuario=numero_identificacion_e)
-        usuario.estado_u=False
-        usuario.save()
-        return redirect('ListarEmpleados', nit=empresa)
+    def get_salario_minimo(request, cargo_id):
+        try:
+            cargo = Cargo.objects.get(id_cargo=cargo_id)
+            return JsonResponse({'salario_minimo': str(cargo.salario_minimo)})
+        except Cargo.DoesNotExist:
+            return JsonResponse({'salario_minimo': ''})
         
         
         
     def registroContrato(request, numero_identificacion_e):
-            empleado = Empleado.objects.get(pk=numero_identificacion_e)
-            empresa = empleado.nit
-
-            # Si la solicitud es GET, muestra el formulario vacío
-            if request.method == 'GET':
-                formulario = ContratoForm()  # Formulario vacío en caso de una solicitud GET
-
-            # Si la solicitud es POST, procesa el formulario enviado
-            elif request.method == 'POST':
-                formulario = ContratoForm(request.POST, request.FILES)
-                if formulario.is_valid():
-                    # Asigna el número de identificación antes de guardar
-                    contrato = formulario.save(commit=False)
-                     # Asigna el empleado al contrato
-                    contrato.estado = 'Activo'
-                    contrato.numero_identificacion_e = empleado 
-                    contrato.save()  # Guarda el contrato
-                    return redirect('ListarEmpleados', empresa)  # Redirige después de guardar
-
-            return render(request, 'empresarial/registroContrato.html', {
-                'form': formulario, 
-                'mensaje': 'ok', 
-                'id_empleado': numero_identificacion_e, 
-                'empresa': empresa
-            })
+        empleado = Empleado.objects.get(pk=numero_identificacion_e)
+        empresa = empleado.nit  
 
         
+        if request.method == 'GET':
+            formulario = ContratoForm()  
+
+       
+        elif request.method == 'POST':
+            formulario = ContratoForm(request.POST, request.FILES)
+            if formulario.is_valid():
+                
+                contrato = formulario.save(commit=False)
+                contrato.estado = 'Activo'
+                contrato.numero_identificacion_e = empleado  
+                contrato.empresa = empresa 
+                contrato.save() 
+                
+               
+                return redirect('ListarEmpleados', empresa.nit)  
+
+        return render(request, 'empresarial/registroContrato.html', {'form': formulario, 'mensaje': 'ok', 'id_empleado': numero_identificacion_e, 'empresa': empresa})
+
+            
     def cancelarContrato(request, numero_identificacion_e):
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
         empresa = empleado.nit.nit
@@ -457,11 +467,24 @@ class GestionarEmpresa(HttpRequest):
     
 class CalculosGenerales(HttpRequest):
     
+    porcentaje= PorcentajesLegales.objects.filter(vigente=True).first()
+    
     def calcularSalario(request, numero_identificacion_e):
-        empleado = Empleado.objects.get(pk=numero_identificacion_e)
-        empresa = empleado.nit
-        contrato = Contrato.objects.filter(numero_identificacion_e=empleado).first()
-        
+       
+        # Obtener el empleado por su número de identificación
+        empleado = get_object_or_404(Empleado, pk=numero_identificacion_e)
+            
+            # Obtener la empresa asociada al empleado
+        empresa = get_object_or_404(Empresa, pk=empleado.nit.pk)
+            
+            # Filtrar contratos del empleado por empresa y estado activo
+        contrato = Contrato.objects.filter(
+                numero_identificacion_e=empleado,
+                empresa=empresa,
+                estado='Activo'
+            ).order_by('-fecha_inicio').first()
+            
+
         # Verificar si ya existe un cálculo para este mes
         hoy = datetime.now()
         mes_actual = hoy.month
@@ -480,15 +503,21 @@ class CalculosGenerales(HttpRequest):
         dias_trabajados_anteriores, dias_trabajados_actuales, dias_antiguedad = CalculosGenerales.diasTrabajados(dias_trabajados)
         salario_base = contrato.salario_asignado
         transporte = CalculosGenerales.auxilioTrasnporte(salario_base)
-        salario_base_transpor = salario_base + transporte
+       
         
         # Cálculo de aportes a seguridad social
+        salario_base = Decimal(salario_base)
         salario_base_sin_trasnpo = salario_base
-        salud = salario_base_sin_trasnpo * 0.04
-        salud_empleador = salario_base_sin_trasnpo * 0.085  # Aportes adicionales del empleador
+        salario_base = Decimal(salario_base)
+        transporte = Decimal(transporte)
+        salario_base_transpor = salario_base + transporte
+        salario_base_sin_trasnpo = Decimal(salario_base_sin_trasnpo)
         
-        pension = salario_base_sin_trasnpo * 0.04
-        pension_empleador = salario_base_sin_trasnpo * 0.12  # Aportes adicionales del empleador
+        salud = salario_base_sin_trasnpo * CalculosGenerales.porcentaje.salud_empleado
+        salud_empleador = salario_base_sin_trasnpo * CalculosGenerales.porcentaje.salud_empresa
+        
+        pension = salario_base_sin_trasnpo * CalculosGenerales.porcentaje.pension_empleado
+        pension_empleador = salario_base_sin_trasnpo * CalculosGenerales.porcentaje.pension_empresa # Aportes adicionales del empleador
         
             
         # Obtener el cargo del contrato
@@ -522,7 +551,11 @@ class CalculosGenerales(HttpRequest):
         sena, icbf, cajaCompensacion = CalculosGenerales.prestacionesSociales(salario_base)
         
         # Guardar el cálculo en la base de datos
-        total=salario_base_transpor-salud-pension
+        salud = Decimal(salud)
+        pension = Decimal(pension)
+        salario_base_transporte = Decimal(salario_base_transpor)
+
+        total = salario_base_transporte - salud - pension
         
         calculos = Liquidacion(
             fecha_inicio=datetime(anio_actual, mes_actual, 1),
@@ -541,7 +574,8 @@ class CalculosGenerales(HttpRequest):
             numero_identificacion_e=empleado,
 
             total_antes_deducciones=salario_base_sin_trasnpo,
-            total_final=total
+            total_final=total,
+            empresa=empresa
             # Se guarda la fecha actual como fecha de cálculo
             # HorasExDiu=horas_extras_diurnas,
             # HorasExNoc=horas_extras_nocturnas,
@@ -635,16 +669,18 @@ class CalculosGenerales(HttpRequest):
 
     def nivelRiesgo(salario_base, nivel_riesgo):
         # Calcula el valor del aporte a ARL basado en el nivel de riesgo
+        salario_base = Decimal(salario_base)
+        
         if nivel_riesgo == 1:
-            arl = salario_base * 0.00522
+            arl = salario_base * CalculosGenerales.porcentaje.riesgo_laboral1
         elif nivel_riesgo == 2:
-            arl = salario_base * 0.01044
+            arl = salario_base * CalculosGenerales.porcentaje.riesgo_laboral2
         elif nivel_riesgo == 3:
-            arl = salario_base * 0.02436
+            arl = salario_base * CalculosGenerales.porcentaje.riesgo_laboral3
         elif nivel_riesgo == 4:
-            arl = salario_base * 0.04350
+            arl = salario_base * CalculosGenerales.porcentaje.riesgo_laboral4
         elif nivel_riesgo == 5:
-            arl = salario_base * 0.06960
+            arl = salario_base * CalculosGenerales.porcentaje.riesgo_laboral5
         else:
             arl = 0
         
@@ -654,7 +690,7 @@ class CalculosGenerales(HttpRequest):
     def auxilioTrasnporte(salario_base):
         # Calcula el valor del auxilio de transporte según el salario base
         if salario_base >= 1300000 and salario_base <= 2600000 and salario_base > 0:
-            auxilio = 162000
+            auxilio = CalculosGenerales.porcentaje.auxilio_transporte
         else:
             auxilio = 0
         
@@ -663,17 +699,24 @@ class CalculosGenerales(HttpRequest):
 
     def prestacionesSociales(salario_base):
         # Calcula los valores de los aportes a SENA, ICBF y caja de compensación
-        sena = 0
-        icbf = 0
-        if salario_base >= 10000000 and salario_base > 0:
-            sena = salario_base * 0.02
-            icbf = salario_base * 0.03
-            cajaCompensacion = salario_base * 0.04
+        salario_base = Decimal(salario_base)
+        porcentaje_sena = Decimal(CalculosGenerales.porcentaje.sena)
+        porcentaje_icbf = Decimal(CalculosGenerales.porcentaje.icbf)
+        porcentaje_caja_compensacion = Decimal(CalculosGenerales.porcentaje.caja_compensacion)
+
+        sena = Decimal(0)
+        icbf = Decimal(0)
+        cajaCompensacion = Decimal(0)
+
+        if salario_base >= Decimal(10000000) and salario_base > Decimal(0):
+            sena = salario_base * porcentaje_sena
+            icbf = salario_base * porcentaje_icbf
+            cajaCompensacion = salario_base * porcentaje_caja_compensacion
         else:
-            cajaCompensacion = salario_base * 0.04
-        
+            cajaCompensacion = salario_base * porcentaje_caja_compensacion
+
         return sena, icbf, cajaCompensacion
-        # Retorna los valores calculados para SENA, ICBF y caja de compensación
+            # Retorna los valores calculados para SENA, ICBF y caja de compensación
 
     def diasTrabajados(fecha_ingreso):
         # Verifica si fecha_ingreso es datetime.date y conviértelo a str si es necesario
@@ -711,18 +754,24 @@ class CalculosGenerales(HttpRequest):
 
     def calculoCesantias(salario_base_transpor, dias_trabajados_actuales):
         # Calcula el valor de las cesantías e intereses de cesantías
-        cesantias = (salario_base_transpor * dias_trabajados_actuales) / 360
-        interes_cesantias = (cesantias * dias_trabajados_actuales * 0.12) / 360
+        cesantias = (salario_base_transpor * dias_trabajados_actuales) / CalculosGenerales.porcentaje.cesantias
+        interes_cesantias = (cesantias * dias_trabajados_actuales * CalculosGenerales.porcentaje.intereses_cesantias) / 360
         
         return cesantias, interes_cesantias
         # Retorna el valor calculado de las cesantías e intereses de cesantías
 
     def calculoVacaciones(salario_base, dias_antiguedad):
         # Calcula los días y el valor de las vacaciones basado en el salario base y la antigüedad
-        valor_dia = salario_base / 30
-        dias_vaciones = (dias_antiguedad / 360) * 15
+        salario_base = Decimal(salario_base)  
+        vacaciones_porcentaje = Decimal(CalculosGenerales.porcentaje.vacaciones)  
+
+        # Calcular valor_dia y convertir a Decimal
+        valor_dia = salario_base / Decimal(30)
+        dias_antiguedad = Decimal(dias_antiguedad)  
+        dias_vaciones = (dias_antiguedad / Decimal(360)) * vacaciones_porcentaje
+
+        # Calcular valor_vacciones
         valor_vacciones = valor_dia * dias_vaciones
-        
         return dias_vaciones, valor_vacciones
         # Retorna el número de días de vacaciones y el valor calculado de las vacaciones
 
@@ -805,7 +854,7 @@ class CalculosGenerales(HttpRequest):
             'transporte':transporte_formatted,
             'salud_empre':calculo.salud_empresa,
             'pension_empre':calculo.pension_empresa,
-            
+            'CajaCompensa':calculo.caja_compensacion,
             # 'HorasExDiu': calculo.HorasExDiu,
             # 'HorasExNoc': calculo.HorasExNoc,
             # 'HorasExFestivaDiu': calculo.HorasExFestivaDiu,
@@ -822,7 +871,8 @@ class CalculosGenerales(HttpRequest):
 
     def obtener_todos_los_calculos(request, numero_identificacion_e):
         empleado = get_object_or_404(Empleado, pk=numero_identificacion_e)
-        todos_los_calculos = Liquidacion.objects.filter(numero_identificacion_e=empleado)
+        nit=empleado.nit
+        todos_los_calculos = Liquidacion.objects.filter(numero_identificacion_e=empleado,empresa=nit)
         nit = empleado.nit
        
         # Prepara el contexto
@@ -895,3 +945,74 @@ class Porcentajes(HttpRequest):
             form = PorcentajesLegalesForm(instance=porcentaje_legales)
 
         return render(request, 'empresarial/porcentajes.html', {'form': form})
+    
+class Cargos(HttpRequest):
+
+    def listar_nivel_grado(request):
+        nivelgrados = NivelGrado.objects.all()
+        return render(request, 'empresarial/nivelGrado.html', {'nivelgrados': nivelgrados})
+
+    def crear_nivel_grado(request):
+        if request.method == 'POST':
+            form = NivelGradoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('nivelgrado_list')
+        else:
+            form = NivelGradoForm()
+        return render(request, 'empresarial/resgistrarNivelGrado.html', {'form': form})
+
+    def actualizar_nivel_grado(request, id):
+        nivelgrado = get_object_or_404(NivelGrado, pk=id)
+        if request.method == 'POST':
+            form = NivelGradoForm(request.POST, instance=nivelgrado)
+            if form.is_valid():
+                form.save()
+                return redirect('nivelgrado_list')
+        else:
+            form = NivelGradoForm(instance=nivelgrado)
+        return render(request, 'empresarial/editarNivelGrado.html', {'form': form})
+
+    def eliminar_nivel_grado(request, id):
+        nivelgrado = get_object_or_404(NivelGrado, pk=id)
+        nivelgrados = NivelGrado.objects.all()
+        nivelgrado.delete()
+        return render(request, 'empresarial/nivelGrado.html', {'nivelgrados': nivelgrados})
+    
+    
+    
+    
+    def cargo_list(request):
+        cargos = Cargo.objects.all()
+        return render(request, 'cargo/cargo_list.html', {'cargos': cargos})
+
+# Crear
+    def cargo_create(request):
+        if request.method == 'POST':
+            form = CargoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('cargo_list')
+        else:
+            form = CargoForm()
+        return render(request, 'cargo/cargo_form.html', {'form': form})
+
+    # Modificar
+    def cargo_update(request, pk):
+        cargo = get_object_or_404(Cargo, pk=pk)
+        if request.method == 'POST':
+            form = CargoForm(request.POST, instance=cargo)
+            if form.is_valid():
+                form.save()
+                return redirect('cargo_list')
+        else:
+            form = CargoForm(instance=cargo)
+        return render(request, 'cargo/cargo_form.html', {'form': form})
+
+    # Eliminar
+    def cargo_delete(request, pk):
+        cargo = get_object_or_404(Cargo, pk=pk)
+        if request.method == 'POST':
+            cargo.delete()
+            return redirect('cargo_list')
+        return render(request, 'cargo/cargo_confirm_delete.html', {'cargo': cargo})

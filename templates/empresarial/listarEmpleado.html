@@ -16,7 +16,7 @@
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 200) {
+        if (idleTime > 4) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }
@@ -24,7 +24,7 @@
       
       $(document).ready(function () {
         // Increment the idle time counter every 10 seconds.
-        var idleInterval = setInterval(timerIncrement, 10000)
+        var idleInterval = setInterval(timerIncrement, 5000)
       
         // Reset the idle timer on mouse movement or key press.
         $(this).mousemove(function (e) {
@@ -73,90 +73,98 @@
 
   <body>
     <div class="contenedor">
-      <ul class="nav justify-content-end">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
-        </li>
+        <ul class="nav justify-content-end">
+            <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
+            </li>
+            <li class="nav-item" style="float: right; margin-right: 0;">
+                <a class="nav-link active" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesión</a>
+            </li>
+        </ul>
+        <br />
+        {% if request.session.estadoSesion %}
+            {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
+                <h1>Lista de Empleados de {{ empresa.razon_social }}</h1>
+                <h3>Id empleado: {{ request.session.numero_identificacion_e }}</h3>
+                <h3>Rol: {{ request.session.permisos }}</h3>
+                
+                {% if mensaje_contrato %}
+                    <div class="alert alert-warning" role="alert">
+                        {{ mensaje_contrato }}
+                    </div>
+                {% endif %}
 
-        <li class="nav-item" style="float: right; margin-right: 0;">
-          <a class="nav-link active" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesión</a>
-        </li>
-      </ul>
-      <br />
-      {% if request.session.estadoSesion %}
-        {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
-          <h1>Lista de Empleados de {{ empresa.razon_social }}</h1>
-          <h3>Id empleado: {{ request.session.numero_identificacion_e }}</h3>
-          <h3>Rol: {{ request.session.permisos }}</h3>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Buscar usuarios..." onkeyup="filterUsers()" />
+                    <br />
+                </div>
 
-          <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar usuarios..." onkeyup="filterUsers()" />
-            <br />
-          </div>
+                <table id="users-table">
+                    <br />
+                    <br />
+                    <thead>
+                        <tr>
+                            <th>Identificación</th>
+                            <th>Nombre</th>
+                            <th>Aniguedad</th>
+                            <th>Correo</th>
+                            <th>Imagen</th>
+                            <th>Estado contrato</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for empleado_data in empleados_con_antiguedad %}
+                            <tr>
+                                <td>{{ empleado_data.empleado.numero_identificacion_e }}</td>
+                                <td>{{ empleado_data.empleado.primer_nombre }} {{ empleado_data.empleado.primer_apellido }}</td>
+                                <td>{{ empleado_data.ingreso }} Antiguiedad {{ empleado_data.antiguedad }} días</td>
+                                <td>{{ empleado_data.empleado.correo }}</td>
+                                <td>
+                                    <img src="{{ empleado_data.empleado.imagen_empleado.url }}" alt="Imagen" width="50" />
+                                </td>
+                                <td>{{ empleado_data.estado }}</td>
+                                <td>
+                                    {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin'%}
+                                        <a class="a" href="{% url 'editarEmpleado' empleado_data.empleado.numero_identificacion_e %}">Editar empleado</a>
+                                        <a class="a" href="{% url 'terminarContrat' empleado_data.empleado.numero_identificacion_e %}">Cancelar contrato</a><br />
+                                        {% comment %} <a class="a" href="{% url 'editarContrato' empleado_data.empleado.numero_identificacion_e empleado_data.empleado.nit %}">Ver contrato</a><br /> {% endcomment %}
+                                        <br>
+                                        <a class="a" href="{% url 'desvincularEmpleado' empleado_data.empleado.numero_identificacion_e %}">Eliminar empleado del listado</a><br />
+                                        <br />
+                                        {% if empleado_data.estado == 'Sin informacion' %}
+                                            <a class="a" href="{% url 'registContrat' empleado_data.empleado.numero_identificacion_e %}">Registrar contrato</a><br /><br />
+                                        {% endif %}
+                                    {% endif %}
+                                    {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'Admin' %}
+                                            {% if empleado_data.estado != 'Sin informacion' %}
+                                            <a class="a" href="{% url 'calcularemple' empleado_data.empleado.numero_identificacion_e %}">Calcular</a>
+                                        {% endif %}
+                                        
+                                        <a class="a" href="{% url 'todos_los_calculos' empleado_data.empleado.numero_identificacion_e %}">Ver nómina</a>
+                                    {% endif %}
+                                    {% if request.session.permisos == 'Admin' %}
+                                        <a class="a" href="{% url 'desvincularEmpleado' empleado_data.empleado.numero_identificacion_e %}">Desvincular de la empresa</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
 
-          <table id="users-table">
-            <br />
-            <br />
-            <thead>
-              <tr>
-                <th>Identificación</th>
-                <th>Nombre</th>
-                <th>Aniguedad</th>
-                <th>Correo</th>
-                <th>Imagen</th>
-                <th>Estado contrato</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for empleado_data in empleados_con_antiguedad %}
-                <tr>
-                  <td>{{ empleado_data.empleado.numero_identificacion_e }}</td>
-                  <td>{{ empleado_data.empleado.primer_nombre }} {{ empleado_data.empleado.primer_apellido }}</td>
-                  <td>{{ empleado_data.ingreso }} Antiguiedad {{ empleado_data.antiguedad }} días</td>
-                  <td>{{ empleado_data.empleado.correo }}</td>
-                  <td>
-                    <img src="{{ empleado_data.empleado.imagen_empleado.url }}" alt="Imagen" width="50" />
-                  </td>
-                  <td>{{ empleado_data.estado }}</td>
-                  <td>
-                    {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' %}
-                      <a class="a" href="{% url 'editarEmpleado' empleado_data.empleado.numero_identificacion_e %}">Editar empleado</a>
-                      <a class="a" href="{% url 'terminarContrat' empleado_data.empleado.numero_identificacion_e %}">Cancelar contrato</a><br />
-                      {% comment %} <a class="a" href="{% url 'editarContrato' empleado_data.empleado.numero_identificacion_e empleado_data.empleado.nit %}">Ver contrato</a><br /> {% endcomment %}
-                      <a class="a" href="{% url 'terminarContrat' empleado_data.empleado.numero_identificacion_e %}">Eliminar empleado del listado</a><br />
-                      <br />
-
-                      {% if empleado_data.ingreso == 'Sin informacion' %}
-                        <a class="a" href="{% url 'registContrat' empleado_data.empleado.numero_identificacion_e %}">Registrar contrato</a><br /><br />
-                      {% endif %}
-                    {% endif %}
-                    {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'Admin' %}
-                      <a class="a" href="{% url 'calcularemple' empleado_data.empleado.numero_identificacion_e %}">Calcular</a>
-                      <a class="a" href="{% url 'todos_los_calculos' empleado_data.empleado.numero_identificacion_e %}">Ver nómina</a>
-                    {% endif %}
-                    {% if request.session.permisos == 'Admin' %}
-                      <a class="a" href="{% url 'eliminaremple' empleado_data.empleado.numero_identificacion_e %}">Eliminar</a>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-
-          {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
-            <a class="opccion" href="{% url 'registroEmpleado' empresa.nit %}">Registrar empleado</a>
-          {% endif %}
-          {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
-            <a class="opccion" href="{% url 'empleadoss' empresa.nit %}">Contratacion</a>
-          {% endif %}
+                {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
+                    <a class="opccion" href="{% url 'registroEmpleado' empresa.nit %}">Registrar empleado</a>
+                {% endif %}
+                {% if request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
+                    <a class="opccion" href="{% url 'empleadoss' empresa.nit %}">Contratacion</a>
+                {% endif %}
+            {% else %}
+                <h1>El usuario no tiene permisos suficientes</h1>
+            {% endif %}
         {% else %}
-          <h1>El usuario no tiene permisos suficientes</h1>
+            <h1>El usuario no ha iniciado sesión</h1>
+            <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
         {% endif %}
-      {% else %}
-        <h1>El usuario no ha iniciado sesión</h1>
-        <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
-      {% endif %}
     </div>
-  </body>
+</body>
 </html>

@@ -16,7 +16,7 @@
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 400) {
+        if (idleTime > 4) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }
@@ -142,16 +142,41 @@
               <th>Salud</th>
               <th>Pension</th>
               <th>ARL</th>
-              <th>SENA</th>
-              <th>ICBF</th>
+
+              {% if sena %}
+                <th>SENA</th>
+              {% else %}
+
+              {% endif %}
+
+              {% if ICBF %}
+                <th>ICBF</th>
+              {% else %}
+
+              {% endif %}
+
               <th>Caja de Compensación</th>
             </tr>
             <tr>
               <td>{{ salud_empeador|floatformat:'0' }}</td>
               <td>{{ pension_empleador|floatformat:'0' }}</td>
-              <td>{{ arl|floatformat:'0' }}</td>
-              <td>{{ sena|floatformat:'0' }}</td>
-              <td>{{ ICBF|floatformat:'0' }}</td>
+              {% if arl %}
+                <td>{{ arl|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
+
+              {% if sena %}
+                <td>{{ sena|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
+
+              {% if ICBF %}
+                <td>{{ ICBF|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
               <td>{{ CajaCompensa|floatformat:'0' }}</td>
             </tr>
           </table>

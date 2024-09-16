@@ -18,19 +18,22 @@ urlpatterns = [
     path('eliminarEmpre/<int:nit>/', views.GestionarEmpresa.eliminarEmpresa, name='eliminarempre'),
 
     #Gestion de empleado
-    path('empleados/<int:nit>', views.GestionEmpleado.EmpleadosContratar, name='empleadoss'),
+    path('contratar/empleados<int:nit>', views.GestionEmpleado.EmpleadosContratar, name='empleadoss'),
     path('empleado/<int:numero_identificacion_e>', views.Paginas.homeEmpleado, name='homeEmpleado'),
     path('registroEmpleado/<int:nit>', views.GestionEmpleado.crearEmpleado, name='registroEmpleado'),
     path('listarEmpleados/<int:nit>', views.GestionEmpleado.ListarEmpleados, name='ListarEmpleados'), #redirecion para ver los empleados
     path('editarEmpleado/<int:numero_identificacion_e>/', views.GestionEmpleado.editarEmpleado, name='editarEmpleado'),
     path('actualizar/<int:numero_identificacion_e>/', views.GestionEmpleado.actualizarEmpleado, name='actualizarEmpleado'),
     path('eliminar/<int:numero_identificacion_e>/', views.GestionEmpleado.eliminarEmpleado, name='eliminaremple'),
-    path('finalizaContra/<int:numero_identificacion_e>/', views.GestionEmpleado.cancelarContrato, name='terminarContrat'),
+     path('listar/empleados/', views.GestionEmpleado.ListarTodosEmpleados, name='listarTodosEmpleados'),
+   
     
     #gestion de contratos
     path('registroContrat/<int:numero_identificacion_e>/', views.GestionEmpleado.registroContrato, name='registContrat'),
     path('contratacion/<int:numero_identificacion_e>/<int:nit>', views.GestionEmpleado.Contratacion, name='contratacion'),
-    
+    path('finalizaContra/<int:numero_identificacion_e>/', views.GestionEmpleado.cancelarContrato, name='terminarContrat'),
+    path('desvincularEmpleado/<int:numero_identificacion_e>/', views.GestionEmpleado.DesvincularEmpelado, name='desvincularEmpleado'),
+    path('get_salario_minimo/<int:cargo_id>/', views.GestionEmpleado.get_salario_minimo, name='get_salario_minimo'),
     
     
     #Gestion de Calculos
@@ -50,4 +53,15 @@ urlpatterns = [
     path('porcentajes/<int:pk>/update/', views.Porcentajes.actualizar_porcentajes_legales, name='actualizar_porcentajes_legales'),
     path('porcentajes/', views.Porcentajes.listar_porcentajes_legales, name='listar_porcentajes_legales'),
     
+    #gestion de cargos
+    path('nivelgrados/', views.Cargos.listar_nivel_grado, name='nivelgrado_list'),
+    path('nivelgrados/crear/', views.Cargos.crear_nivel_grado, name='nivelgrado_create'),
+    path('nivelgrados/editar/<int:id>/', views.Cargos.actualizar_nivel_grado, name='nivelgrado_update'),
+    path('nivelgrados/eliminar/<int:id>/', views.Cargos.eliminar_nivel_grado, name='nivelgrado_delete'),
+    
+    path('cargos', views.Cargos.cargo_list, name='cargo_list'),
+    path('crear/cargo', views.Cargos.cargo_create, name='cargo_create'),
+    path('actualizar/cargo/<int:pk>/', views.Cargos.cargo_update, name='cargo_update'),
+    path('eliminar/cargo/<int:pk>/', views.Cargos.cargo_delete, name='cargo_delete'),
+
 ]

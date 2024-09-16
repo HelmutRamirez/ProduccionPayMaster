@@ -65,6 +65,54 @@
             // Opcional: Manejar errores si es necesario
           })
       })
+
+      
+        document.addEventListener('DOMContentLoaded', function() {
+          // Obtener elementos del formulario
+          const tipoContratoField = document.getElementById('id_tipo_contrato');
+          const fechaFinField = document.getElementById('id_fecha_fin');
+      
+          // Función para habilitar o deshabilitar el campo de fecha fin
+          function toggleFechaFinRequired() {
+            if (tipoContratoField.value === 'Termino Fijo') {
+              fechaFinField.required = true;  // Hacer obligatorio
+              fechaFinField.parentElement.style.display = 'block';  // Mostrar el campo
+            } else {
+              fechaFinField.required = false;  // No obligatorio
+              fechaFinField.value = '';  // Limpiar el valor si no es requerido
+              fechaFinField.parentElement.style.display = 'none';  // Ocultar el campo
+            }
+          }
+      
+          // Ejecutar cuando se cambie el tipo de contrato
+          tipoContratoField.addEventListener('change', toggleFechaFinRequired);
+      
+          // Llamar a la función al cargar la página para la selección inicial
+          toggleFechaFinRequired();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+          const cargoField = document.getElementById('id_id_cargo');
+          const salarioField = document.getElementById('id_salario_asignado');
+      
+          cargoField.addEventListener('change', function() {
+            const cargoId = cargoField.value;
+            
+            if (cargoId) {
+              fetch(`/get_salario_minimo/${cargoId}/`)
+                .then(response => response.json())
+                .then(data => {
+                  salarioField.value = data.salario_minimo || '';
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
+            } else {
+              salarioField.value = '';
+            }
+          });
+        });
+      
     </script>
   </head>
 

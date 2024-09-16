@@ -1,7 +1,7 @@
 
 from datetime import timedelta
 from django import forms   # type: ignore 
-from .models import Empleado, PorcentajesLegales,Usuarios,Empresa, Liquidacion,HorasExtrasRecargos,Contrato
+from .models import Cargo, Empleado, NivelGrado, PorcentajesLegales,Usuarios,Empresa, Liquidacion,HorasExtrasRecargos,Contrato
 from django.core.exceptions import ValidationError # type: ignore
 from django.utils import timezone # type: ignore
 from django.contrib.auth.hashers import make_password
@@ -9,23 +9,37 @@ from django.contrib.auth.hashers import make_password
 class ContratoForm(forms.ModelForm):
     class Meta:
         model = Contrato
-        fields = ['fecha_inicio','fecha_fin',
-                  'horas_semanales',
-                  'salario_asignado',
-                  'tipo_contrato',
-                  'id_cargo'
-                  ]
+        fields = ['fecha_inicio', 'fecha_fin', 'horas_semanales', 'salario_asignado', 'tipo_contrato', 'id_cargo']
         labels = {
-                    'id_cargo': 'Cargo',  # Cambia el nombre que aparecerá en el formulario
-                }
+            'id_cargo': 'Cargo',
+        }
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'fecha_fin': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
-             }
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        tipo_contrato = cleaned_data.get('tipo_contrato')
+        fecha_fin = cleaned_data.get('fecha_fin')
+
+        # Si el tipo de contrato es "Término Fijo", verificar que la fecha fin esté presente
+        if tipo_contrato == 'Termino Fijo' and not fecha_fin:
+            self.add_error('fecha_fin', 'Este campo es obligatorio para contratos de término fijo.')
+
+        return cleaned_data
+class NivelGradoForm(forms.ModelForm):
+    class Meta:
+        model = NivelGrado
+        fields = ['tipo_nivel_grado',  'digitiNivelGrado','salario_minimo', 'salario_maximo', 'min_meses_expe', 'id_nivel_estudio_requerido']             
 class EmpresaForm(forms.ModelForm):
     class Meta:
         model = Empresa
         fields = '__all__'
+class CargoForm(forms.ModelForm):
+    class Meta:
+        model = Cargo
+        fields = ['nombre_cargo', 'descripcion_cargo', 'nivel_riesgo', 'id_nivel_grado']
 
 class EmpleadoForm(forms.ModelForm):
     class Meta:

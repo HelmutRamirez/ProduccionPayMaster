@@ -23,8 +23,10 @@
       }
       
       $(document).ready(function () {
+        // Increment the idle time counter every 10 seconds.
         var idleInterval = setInterval(timerIncrement, 5000)
       
+        // Reset the idle timer on mouse movement or key press.
         $(this).mousemove(function (e) {
           idleTime = 0
           keepSessionAlive()
@@ -75,65 +77,60 @@
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
         </li>
-
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesion</a>
+       
+        <li class="nav-item" style="float: right; margin-right: 0;">
+          <a class="nav-link active" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesión</a>
         </li>
       </ul>
-
+      <br />
       {% if request.session.estadoSesion %}
-        {% if request.session.permisos == 'Admin' or request.session.permisos == 'RRHHL' %}
-          <h1>Editar Usuarios</h1>
+        {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
+          <h1>Lista de Empleados de {{ empresa.razon_social }}</h1>
+          <h3>Id empleado: {{ request.session.numero_identificacion_e }}</h3>
+          <h3>Rol: {{ request.session.permisos }}</h3>
+
+          {% if mensaje_contrato %}
+            <div class="alert alert-warning" role="alert">{{ mensaje_contrato }}</div>
+          {% endif %}
 
           <div class="search-container">
             <input type="text" id="search-input" placeholder="Buscar usuarios..." onkeyup="filterUsers()" />
             <br />
           </div>
-          <br />
-          <br />
 
-          <table id="users-table">
+          <table>
             <thead>
-              <tr>
-                <th>Id</th>
-                <th>Cedula</th>
-                <th>Nombre Personal</th>
-                <th>Empresa</th>
-                <th>Intentos</th>
-                <th>Estado</th>
-                <th>Rol</th>
-                <th>Acciones</th>
-              </tr>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Nivel de Riesgo</th>
+                    <th>Grado</th>
+                    <th>Acciones</th>
+                </tr>
             </thead>
             <tbody>
-              {% for usuario in usuarios %}
-                <tr>
-                  <td>{{ usuario.id }}</td>
-                  <td>{{ usuario.usuario.numero_identificacion_e }}</td>
-                  <td>{{ usuario.usuario.primer_nombre }} {{ usuario.usuario.primer_apellido }}</td>
-                  <td>{{ usuario.usuario.nit }}</td>
-                  <td>{{ usuario.intentos }}</td>
-                  <td>{{ usuario.estado_u|yesno:'Activo,Inactivo' }}</td>
-                  <td>{{ usuario.rol }}</td>
-                  <td>
-                    <a href="{% url 'editarUsuarioG' usuario.id %}">Editar</a>
-                  </td>
-                </tr>
-              {% endfor %}
+                {% for cargo in cargos %}
+                    <tr>
+                        <td>{{ cargo.nombre_cargo }}</td>
+                        <td>{{ cargo.descripcion_cargo }}</td>
+                        <td>{{ cargo.get_nivel_riesgo_display }}</td>
+                        <td>{{ cargo.id_nivel_grado }}</td> <!-- Muestra el ID del nivel de grado, si necesitas más detalles, puedes acceder a sus atributos. -->
+                        <td>
+                            <a href="{% url 'cargo_update' cargo.pk %}">Editar</a> |
+                            <a href="{% url 'cargo_delete' cargo.pk %}">Eliminar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
             </tbody>
-          </table>
-
-          {% if request.session.permisos == 'Admin' %}
-            <div class="volverB">
-              <a class="link" href="{% url 'creacionUsuario' %}">Crear Usuario maestro </a>
-            </div>
-          {% endif %}
+        </table>
+          
+          <a class="nav-link active" aria-current="page" href="{% url 'nivelgrado_create' %}">Crear Nivel Grado</a>
         {% else %}
-          <h1>El usuario no tiene permisos</h1>
+          <h1>El usuario no tiene permisos suficientes</h1>
         {% endif %}
       {% else %}
         <h1>El usuario no ha iniciado sesión</h1>
-        {% comment %} <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a> {% endcomment %}
+        <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
       {% endif %}
     </div>
   </body>

@@ -11,6 +11,62 @@
     <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
     <script src="{% static 'js/session_monitor.js' %}" defer></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      var idleTime = 0
+      
+      function timerIncrement() {
+        idleTime++
+        if (idleTime > 4) {
+          alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
+          window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
+        }
+      }
+      
+      $(document).ready(function () {
+        var idleInterval = setInterval(timerIncrement, 5000)
+      
+        $(this).mousemove(function (e) {
+          idleTime = 0
+          keepSessionAlive()
+        })
+        $(this).keypress(function (e) {
+          idleTime = 0
+          keepSessionAlive()
+        })
+      })
+      
+      function keepSessionAlive() {
+        $.get("{% url 'keep_session_alive' %}")
+      }
+      
+      window.addEventListener('popstate', function (event) {
+        // Prevenir el comportamiento por defecto
+        event.preventDefault()
+      
+        // Mostrar alerta antes de cerrar sesión
+        alert('Su sesión ha expirado. Será redirigido para Iniciar sesión.')
+      
+        // Enviar la solicitud POST para cerrar sesión
+        fetch('{% url "cerrar_sesion_redirect_e" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({})
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Redirigir a la página de inicio de sesión después de cerrar sesión
+              window.location.href = '{% url "loginEmpresa" %}'
+            }
+          })
+          .catch((error) => {
+            console.error('Error al cerrar sesión:', error)
+            // Opcional: Manejar errores si es necesario
+          })
+      })
+    </script>
   </head>
 
   <body>
@@ -27,6 +83,21 @@
             {% if request.session.permisos == 'Admin' or request.session.permisos == 'ContadorL' %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'listar_porcentajes_legales' %}">Gestionar Porcentajes</a>
+              </li>
+            {% endif %}
+            {% if request.session.permisos == 'Admin' or request.session.permisos == 'RRHHL' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'listarTodosEmpleados' %}">Gestionar todos los empleado</a>
+              </li>
+            {% endif %}
+            {% if request.session.permisos == 'Admin' or request.session.permisos == 'RRHHL' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'nivelgrado_list' %}">Gestionar Nivel Grado</a>
+              </li>
+            {% endif %}
+            {% if request.session.permisos == 'Admin' or request.session.permisos == 'RRHHL' %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url '' %}">Gestionar Cargos</a>
               </li>
             {% endif %}
 

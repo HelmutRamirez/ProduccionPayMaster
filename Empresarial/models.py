@@ -34,6 +34,7 @@ class NivelEstudio(models.Model):
 class NivelGrado(models.Model):
     id_nivel_grado = models.AutoField(primary_key=True)
     tipo_nivel_grado = models.CharField(max_length=10, choices=[('Grado', 'Grado'), ('Nivel', 'Nivel'),('No aplica', 'No aplica')])
+    digitiNivelGrado = models.CharField(max_length=30)
     salario_minimo= models.DecimalField( max_digits=10,decimal_places=2)
     salario_maximo = models.DecimalField( max_digits=10,decimal_places=2)
     min_meses_expe = models.IntegerField()
@@ -97,6 +98,7 @@ class Contrato(models.Model):
     tipo_contrato =  models.CharField(max_length=20, choices=tipo_contrato)
     id_cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
     numero_identificacion_e = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    empresa = models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class Liquidacion(models.Model):
@@ -116,7 +118,7 @@ class Liquidacion(models.Model):
     numero_identificacion_e = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     total_antes_deducciones = models.DecimalField(max_digits=10, decimal_places=2)
     total_final = models.DecimalField(max_digits=10, decimal_places=2)
-    empresa=models.IntegerField(null=True)
+    empresa=models.ForeignKey(Empresa, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class vacacionesCesantias(models.Model):
@@ -195,8 +197,8 @@ class PorcentajesLegales(models.Model):
     pension_empresa = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de pensión a cargo de la empresa")
     
     # Otros porcentajes de prestaciones
-    vacaciones = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de vacaciones")
-    cesantias = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de cesantías")
+    vacaciones = models.IntegerField(help_text="Días hábiles de vacaciones")
+    cesantias = models.IntegerField(help_text="Periodo de cálculo de cesantías 360 días 1 enero a 31 de diciembre")
     intereses_cesantias = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de intereses sobre cesantías")
     
     # Contribuciones parafiscales
@@ -211,10 +213,10 @@ class PorcentajesLegales(models.Model):
     riesgo_laboral4 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 4")
     riesgo_laboral5 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 5")
     
-    auxilio_transporte = models.IntegerField( help_text="Monto del auxilio de transporte")
+    auxilio_transporte = models.DecimalField(max_digits=10, decimal_places=2, help_text="Monto del auxilio de transporte")
     
     fecha_vigencia = models.DateField(help_text="Fecha de inicio de vigencia de estos porcentajes")
-    vigente=models.BooleanField(default=True)
+    vigente = models.BooleanField(default=True)
     
     def __str__(self):
         return f"Porcentajes Legales - Vigencia desde {self.fecha_vigencia}"

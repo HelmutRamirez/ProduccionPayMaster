@@ -16,7 +16,7 @@
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 400) {
+        if (idleTime > 4) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }
@@ -102,10 +102,18 @@
               <th>Antiguedad</th>
               <th>Vacaciones</th>
               <th>Días de Vacaciones</th>
-              <th>Horas Extras Diurnas</th>
-              <th>Horas Extras Nocturnas</th>
-              <th>Horas Extras Diurnas Festivas</th>
-              <th>Horas Extras Nocturnas Festivas</th>
+              {% if HorasExDiu %}
+                <th>Horas Extras Diurnas</th>
+              {% endif %}
+              {% if HorasExNoc %}
+                <th>Horas Extras Nocturnas</th>
+              {% endif %}
+              {% if HorasExFestivaDiu %}
+                <th>Horas Extras Diurnas Festivas</th>
+              {% endif %}
+              {% if HorasExFestivaNoc %}
+                <th>Horas Extras Nocturnas Festivas</th>
+              {% endif %}
             </tr>
             <tr>
               <td>{{ transporte }}</td>
@@ -114,10 +122,21 @@
               <td>Ingreso: {{ fecha_ingreso }},{{ antiguedad|floatformat:'0' }} dias de antiguedad</td>
               <td>{{ valor_vacaciones|floatformat:'0' }}</td>
               <td>{{ dias_vacaciones|floatformat:'0' }}</td>
-              <td>{{ HorasExDiu|floatformat:'0' }}</td>
-              <td>{{ HorasExNoc|floatformat:'0' }}</td>
-              <td>{{ HorasExFestivaDiu|floatformat:'0' }}</td>
-              <td>{{ HorasExFestivaNoc|floatformat:'0' }}</td>
+              {% if HorasExDiu %}
+                <td>{{ HorasExDiu|floatformat:'0' }}</td>
+              {% endif %}
+
+              {% if HorasExNoc %}
+                <td>{{ HorasExNoc|floatformat:'0' }}</td>
+              {% endif %}
+
+              {% if HorasExFestivaDiu %}
+                <td>{{ HorasExFestivaDiu|floatformat:'0' }}</td>
+              {% endif %}
+
+              {% if HorasExFestivaNoc %}
+                <td>{{ HorasExFestivaNoc|floatformat:'0' }}</td>
+              {% endif %}
             </tr>
           </table>
 
@@ -141,16 +160,40 @@
               <th>Salud</th>
               <th>Pension</th>
               <th>ARL</th>
-              <th>SENA</th>
-              <th>ICBF</th>
+              {% if sena %}
+                <th>SENA</th>
+              {% else %}
+
+              {% endif %}
+
+              {% if ICBF %}
+                <th>ICBF</th>
+              {% else %}
+
+              {% endif %}
+
               <th>Caja de Compensación</th>
             </tr>
             <tr>
               <td>{{ salud_empre|floatformat:'0' }}</td>
               <td>{{ pension_empre|floatformat:'0' }}</td>
-              <td>{{ arl|floatformat:'0' }}</td>
-              <td>{{ sena|floatformat:'0' }}</td>
-              <td>{{ ICBF|floatformat:'0' }}</td>
+              {% if arl %}
+                <td>{{ arl|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
+
+              {% if sena %}
+                <td>{{ sena|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
+
+              {% if ICBF %}
+                <td>{{ ICBF|floatformat:'0' }}</td>
+              {% else %}
+
+              {% endif %}
               <td>{{ CajaCompensa|floatformat:'0' }}</td>
             </tr>
           </table>
