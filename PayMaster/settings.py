@@ -96,17 +96,16 @@ if not DEBUG:
         )
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'paymaster',
-            'USER': 'postgres',
-            'PASSWORD': 'ADSO2023',
-            'HOST': 'localhost',
-            'PORT': '5432',
-        }
+   DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'paymaster',  
+        'USER': 'root',                 
+        'PASSWORD': '',                         
+        'HOST': '127.0.0.1',                    
+        'PORT': '3306',                          
     }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
