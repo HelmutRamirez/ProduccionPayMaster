@@ -97,7 +97,7 @@
             {% endif %}
             {% if request.session.permisos == 'Admin' or request.session.permisos == 'RRHHL' %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url '' %}">Gestionar Cargos</a>
+                {% comment %} <a class="nav-link" href="{% url '' %}">Gestionar Cargos</a> {% endcomment %}
               </li>
             {% endif %}
 
