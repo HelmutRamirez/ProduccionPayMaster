@@ -1,10 +1,14 @@
 
+import calendar
 from datetime import date, datetime
+from decimal import Decimal
+from msilib.schema import ListView
 from django.db.models import Sum,Q
 from django.utils import timezone # type: ignore
-from django.shortcuts import render, get_object_or_404, redirect # type: ignore
-from Empresarial.forms import ContratoForm, EmpresaForm, EmpleadoForm,LoginForm, PasswordResetForm,RecuperarContrasenaForm,HorasExtrasRecargos
-from .models import Contrato, Empresa, Empleado, Usuarios, Liquidacion,PasswordResetRequest
+from django.shortcuts import render, get_object_or_404, redirect
+from django.views import View # type: ignore
+from Empresarial.forms import ContratoForm, CrearUsuarioForm, EmpresaForm, EmpleadoForm,LoginForm, PasswordResetForm, PorcentajesLegalesForm,RecuperarContrasenaForm,HorasExtrasRecargos, UsuarioForm
+from .models import Cargo, Contrato, Empresa, Empleado, PorcentajesLegales, Usuarios, Liquidacion,PasswordResetRequest, vacacionesCesantias
 from django.core.mail import send_mail # type: ignore
 from django.template.loader import render_to_string # type: ignore
 from django.utils.html import strip_tags # type: ignore
@@ -17,6 +21,10 @@ from django.utils.encoding import force_str # type: ignore
 from django.http import JsonResponse # type: ignore
 from django.views.decorators.http import require_POST # type: ignore
 import re
+from django.contrib.humanize.templatetags.humanize import intcomma
+
+from Empresarial import models
+
 
 
 class GestionLogin:
@@ -117,25 +125,30 @@ class GestionLogin:
                 contrasena = form.cleaned_data['contrasena']
 
                 try:
-                    usuario = Usuarios.objects.get(usuario__numero_identificacion_e=numero_identificacion_e)  # Buscar el usuario por su número de identificación
-                    indepe = Empleado.objects.get(pk=numero_identificacion_e)
+                    # Buscar el usuario por su número de identificación o por su ID de usuario
+                    usuario = Usuarios.objects.get(
+                        Q(usuario__numero_identificacion_e=numero_identificacion_e) | 
+                        Q(pk=numero_identificacion_e)
+                    )
+
+                    # Obtener los datos del empleado asociado
+                    #indepe = Empleado.objects.get(pk=numero_identificacion_e)
                     permisos = usuario.rol
-                    userName = indepe.primer_nombre
+                    userName = usuario.rol
 
                     if usuario.estado_u:
                         if usuario.check_password(contrasena):  # Verificar la contraseña
                             usuario.intentos = 0
                             usuario.save()
-                        
-                            
+
+                            # Guardar información en la sesión
                             request.session['numero_identificacion_e'] = numero_identificacion_e
                             request.session['estadoSesion'] = True
                             request.session['permisos'] = permisos
                             request.session['user'] = userName
 
-                            data = {'independi': indepe}
-
-                            if permisos in ['Contador', 'Auxiliar Contable', 'RRHH']:
+                            # Redirigir según el rol del usuario
+                            if permisos in ['ContadorL', 'Auxiliar Contable', 'RRHHL', 'Admin','RRHH']:
                                 return redirect('ListarEmpresa')  # Redirigir a la lista de empresas
                             elif permisos == 'Empleado General':
                                 return redirect('homeEmpleado', numero_identificacion_e=numero_identificacion_e)  # Redirigir a la página de inicio del empleado
@@ -148,21 +161,17 @@ class GestionLogin:
                                 usuario.save()
                                 messages.error(request, 'La cuenta ha sido inhabilitada debido a múltiples intentos fallidos de inicio de sesión.')
                             else:
-                                messages.error(request, 'Número de identificación o contraseña incorrectos')
-
+                                messages.error(request, 'Número de identificación o contraseña incorrectos.')
                     else:
                         messages.error(request, 'La cuenta está inhabilitada.')
 
                 except Usuarios.DoesNotExist:
-                    messages.error(request, 'El usuario no existe')
+                    messages.error(request, 'El usuario no existe.')
 
         else:
             form = LoginForm()  # Crear una instancia vacía del formulario
 
         return render(request, 'empresarial/login.html', {'form': form})  # Renderizar la plantilla con el formulario
-
-
-    
 
 
 
@@ -234,7 +243,7 @@ class GestionEmpleado(HttpRequest):
         else:
             formulario = EmpleadoForm(initial={'nit': empresa.nit})  # Inicializa el formulario con el valor de la empresa
 
-        return render(request, 'empresarial/registroEmpleado.html', {'form': formulario, 'mensaje': 'ok', 'empresa': empresa.nit})
+        return render(request, 'empresarial/registroEmpleado.html', {'form': formulario, 'mensaje': 'ok', 'empresa': empresa})
         
 
     def EmpleadosContratar(request,nit):
@@ -262,7 +271,15 @@ class GestionEmpleado(HttpRequest):
         empleado.save() 
         
         return redirect('empleadoss',nit)
-            
+    def EliminarEmpleado(request, numero_identificacion_e, nit):
+    
+        empleado = Empleado.objects.get(pk=numero_identificacion_e)
+        empresa = Empresa.objects.get(nit=nit)
+        
+        empleado.nit = empresa
+        empleado.save() 
+        
+        return redirect('empleadoss',nit)       
             
         
     def ListarEmpleados(request, nit):
@@ -325,7 +342,9 @@ class GestionEmpleado(HttpRequest):
     def editarEmpleado(request, numero_identificacion_e):
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
         formulario = EmpleadoForm(instance=empleado)
-        return render(request, 'empresarial/editarEmpleado.html', {"form": formulario, "empleado": empleado, "numero_identificacion_e": numero_identificacion_e})
+        nit=empleado.nit.nit
+        empresa=Empresa.objects.get(pk=nit)
+        return render(request, 'empresarial/editarEmpleado.html', {"form": formulario, "empleado": empleado, "numero_identificacion_e": numero_identificacion_e,'empresa':empresa})
         # Renderiza el formulario de edición de empleado ('editarEmpleado.html')
 
     def actualizarEmpleado(request, numero_identificacion_e):
@@ -352,7 +371,7 @@ class GestionEmpleado(HttpRequest):
         
     def registroContrato(request, numero_identificacion_e):
             empleado = Empleado.objects.get(pk=numero_identificacion_e)
-            empresa = empleado.nit.nit
+            empresa = empleado.nit
 
             # Si la solicitud es GET, muestra el formulario vacío
             if request.method == 'GET':
@@ -440,29 +459,26 @@ class CalculosGenerales(HttpRequest):
     
     def calcularSalario(request, numero_identificacion_e):
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
-        empresa = empleado.empresa.nit
+        empresa = empleado.nit
+        contrato = Contrato.objects.filter(numero_identificacion_e=empleado).first()
         
         # Verificar si ya existe un cálculo para este mes
         hoy = datetime.now()
         mes_actual = hoy.month
         anio_actual = hoy.year
         
-        existe_calculo = Liquidacion.objects.filter(
-            documento=empleado,
-            fecha_calculos__year=anio_actual,
-            fecha_calculos__month=mes_actual
-        ).exists()
+        # existe_calculo = Liquidacion.objects.filter(
+        #     numero_identificacion_e=empleado,
+        #     fecha_calculo__year=anio_actual,
+        #     fecha_calculo__month=mes_actual
+        # ).exists()
         
-        if existe_calculo:
-            mensaje = "Ya se ha calculado la nómina para este mes."
-            response = redirect('ListarEmpleados', nit=empleado.empresa.nit)
-            
-            return response
+        
         
         # Si no existe el cálculo, procedemos a realizarlo
-        dias_trabajados = empleado.fecha_ingreso
+        dias_trabajados = contrato.fecha_inicio
         dias_trabajados_anteriores, dias_trabajados_actuales, dias_antiguedad = CalculosGenerales.diasTrabajados(dias_trabajados)
-        salario_base = empleado.salario
+        salario_base = contrato.salario_asignado
         transporte = CalculosGenerales.auxilioTrasnporte(salario_base)
         salario_base_transpor = salario_base + transporte
         
@@ -474,62 +490,95 @@ class CalculosGenerales(HttpRequest):
         pension = salario_base_sin_trasnpo * 0.04
         pension_empleador = salario_base_sin_trasnpo * 0.12  # Aportes adicionales del empleador
         
-        nivel_riesgo = int(empleado.nivel_riesgo)
-        arl = CalculosGenerales.nivelRiesgo(salario_base, nivel_riesgo)
+            
+        # Obtener el cargo del contrato
+        # Obtener el objeto Cargo desde el contrato
+        cargo = contrato.id_cargo  # Aquí 'cargo' es un objeto Cargo
+
+        # Obtener el nivel de riesgo del objeto Cargo
+        nivel_riesgo_numero = int(cargo.nivel_riesgo)
+
+        # Usar el nivel de riesgo en el cálculo del ARL
+        arl = CalculosGenerales.nivelRiesgo(salario_base, nivel_riesgo_numero)
+                
+
         
-        # Cálculo de novedades
-        horas_extras = CalculosGenerales.horasExtras(salario_base, empleado)
-        horas_extras_diurnas = horas_extras['diurna']
-        horas_extras_nocturnas = horas_extras['nocturna']
-        horas_extras_diurnas_festivas = horas_extras['diurna_festiva']
-        horas_extras_nocturnas_festivas = horas_extras['nocturna_festiva']
+        # # Cálculo de novedades
+        # horas_extras = CalculosGenerales.horasExtras(salario_base, empleado)
+        # horas_extras_diurnas = horas_extras['diurna']
+        # horas_extras_nocturnas = horas_extras['nocturna']
+        # horas_extras_diurnas_festivas = horas_extras['diurna_festiva']
+        # horas_extras_nocturnas_festivas = horas_extras['nocturna_festiva']
         
-        recargo1 = 0
-        recargo2 = 0
-        recargo3 = 0
+        # recargo1 = 0
+        # recargo2 = 0
+        # recargo3 = 0
         
-        cesantias, intereses_cesantias = CalculosGenerales.calculoCesantias(salario_base_transpor, dias_trabajados_actuales)
-        dias_vacaciones, valor_vacaciones = CalculosGenerales.calculoVacaciones(salario_base, dias_antiguedad)
+        
+        cesantias, intereses_cesantias = CalculosGenerales.calculoCesantias(salario_base_sin_trasnpo, dias_trabajados_actuales)
+        dias_vacaciones, valor_vacaciones = CalculosGenerales.calculoVacaciones(salario_base_sin_trasnpo, dias_antiguedad)
         
         # Cálculo de aportes parafiscales
         sena, icbf, cajaCompensacion = CalculosGenerales.prestacionesSociales(salario_base)
         
         # Guardar el cálculo en la base de datos
+        total=salario_base_transpor-salud-pension
+        
         calculos = Liquidacion(
-            documento=empleado,
-            salud=salud,
-            pension=pension,
+            fecha_inicio=datetime(anio_actual, mes_actual, 1),
+            fecha_fin=datetime(anio_actual, mes_actual, calendar.monthrange(anio_actual, mes_actual)[1]),
+            fecha_calculo=hoy,
+            salud_empleado=salud,
+            pension_empleado=pension,
+            salud_empresa=salud_empleador,
+            pension_empresa=pension_empleador,
+        
             arl=arl,
-            transporte=transporte,
-            salarioBase=salario_base,
-            cajaCompensacion=cajaCompensacion,
-            sena=sena,
-            icbf=icbf,
-            antiguedad=dias_antiguedad,
-            cesantias=cesantias,
-            interesCesantias=intereses_cesantias,
+            caja_compensacion=cajaCompensacion,
             vacaciones=valor_vacaciones,
-            dias_vacaciones=dias_vacaciones,
-            fecha_calculos=hoy,  # Se guarda la fecha actual como fecha de cálculo
-            HorasExDiu=horas_extras_diurnas,
-            HorasExNoc=horas_extras_nocturnas,
-            HorasExFestivaDiu=horas_extras_diurnas_festivas,
-            HorasExFestivaNoc=horas_extras_nocturnas_festivas,
-            recargoDiuFes=recargo1,
-            recargoNoc=recargo2,
-            recargoNocFest=recargo3,
-            salud_empeador=salud_empleador,
-            pension_empleador=pension_empleador,
+            cesantias=cesantias,
+            intereses_cesantias=intereses_cesantias,
+            numero_identificacion_e=empleado,
+
+            total_antes_deducciones=salario_base_sin_trasnpo,
+            total_final=total
+            # Se guarda la fecha actual como fecha de cálculo
+            # HorasExDiu=horas_extras_diurnas,
+            # HorasExNoc=horas_extras_nocturnas,
+            # HorasExFestivaDiu=horas_extras_diurnas_festivas,
+            # HorasExFestivaNoc=horas_extras_nocturnas_festivas,
+            # recargoDiuFes=recargo1,
+            # recargoNoc=recargo2,
+            # recargoNocFest=recargo3,
+           
         )
+        
         calculos.save()
         
-        # Generar el contexto para mostrar los resultados
-        total_valor_horas_extras = sum(horas_extras.values())
-        salario_total = transporte + total_valor_horas_extras + salario_base_transpor
+        vacaciones_cesantias, created = vacacionesCesantias.objects.get_or_create(
+        numero_identificacion_e=empleado,  
+        defaults={
+            'vacaciones_acumulado': Decimal(valor_vacaciones),
+            'cesantias_acumuladas': Decimal(cesantias),
+            'intereses_cesantias': Decimal(intereses_cesantias),
+            'antiguedad': dias_antiguedad,
+            'dias_vacaciones': dias_vacaciones
+            }
+        )   
+
+        if not created:
+            vacaciones_cesantias.vacaciones_acumulado += Decimal(valor_vacaciones)
+            vacaciones_cesantias.cesantias_acumuladas += Decimal(cesantias)
+            vacaciones_cesantias.intereses_cesantias += Decimal(intereses_cesantias)
+            vacaciones_cesantias.antiguedad += dias_antiguedad
+            vacaciones_cesantias.dias_vacaciones += dias_vacaciones
+
+            vacaciones_cesantias.save()
         
         context = {
             'calculos': calculos,
             'empresa': empresa,
+            'empleadoC':empleado,
             'empleado': numero_identificacion_e,
             'salud': salud,
             'pension': pension,
@@ -543,8 +592,8 @@ class CalculosGenerales(HttpRequest):
             'valor_vacaciones': valor_vacaciones,
             'antiguedad': dias_antiguedad,
             'dias_vacaciones': dias_vacaciones,
-            'valor_horas_extras': horas_extras,
-            'salario_total': salario_total,
+            # 'valor_horas_extras': horas_extras,
+            'salario_total': total,
             'salud_empeador': salud_empleador,
             'pension_empleador': pension_empleador,
             'dias_antiguedad': dias_antiguedad,
@@ -720,45 +769,50 @@ class CalculosGenerales(HttpRequest):
     def HistorialNomina(request, documento, fecha):
         empleado = get_object_or_404(Empleado, pk=documento)
         fecha = datetime.strptime(fecha, '%Y-%m-%d').date()
-        calculos_empleado = Liquidacion.objects.filter(documento=empleado, fecha_calculos=fecha)
-        empresa = empleado.empresa.nit
+        calculos_empleado = Liquidacion.objects.filter(numero_identificacion_e=empleado, fecha_calculo=fecha)
+        empresa = empleado.nit
         calculo = calculos_empleado.first()
+        contrato = Contrato.objects.filter(numero_identificacion_e=empleado).first()
+        he = HorasExtrasRecargos.objects.filter(empleado=empleado).first()
         
         salario_total = (
-            (calculo.salarioBase if calculo.salarioBase else 0.0) +
-            (calculo.transporte if calculo.transporte else 0.0) +
-            (calculo.HorasExDiu if calculo.HorasExDiu else 0.0) +
-            (calculo.HorasExNoc if calculo.HorasExNoc else 0.0) +
-            (calculo.HorasExFestivaDiu if calculo.HorasExFestivaDiu else 0.0) +
-            (calculo.HorasExFestivaNoc if calculo.HorasExFestivaNoc else 0.0) +
-            (calculo.recargoDiuFes if calculo.recargoDiuFes else 0.0) +
-            (calculo.recargoNoc if calculo.recargoNoc else 0.0) +
-            (calculo.recargoNocFest if calculo.recargoNocFest else 0.0) -
-            ((calculo.salud if calculo.salud else 0.0) + (calculo.pension if calculo.pension else 0.0))
+            (Decimal(contrato.salario_asignado) if contrato.salario_asignado else Decimal(0)) +
+            ((calculo.salud_empleado if calculo.salud_empleado else Decimal(0)) + 
+            (calculo.pension_empleado if calculo.pension_empleado else Decimal(0)))
         )
-        
+   
+        dias_trabajados = contrato.fecha_inicio
+        dias_trabajados_anteriores, dias_trabajados_actuales, dias_antiguedad = CalculosGenerales.diasTrabajados(dias_trabajados)
+        vacacionesCesa=vacacionesCesantias.objects.filter(numero_identificacion_e=empleado).first()
+        dias_vacaciones=vacacionesCesa.dias_vacaciones
+        transporte=162000
+       
+        transporte_formatted = f"$ {intcomma(transporte)}"
+       
         context = {
             'empresa': empresa,
-            'fecha': calculo.fecha_calculos,
+            'fecha': calculo.fecha_calculo,
             'empleado': empleado,
-            'salud': calculo.salud,
-            'pension': calculo.pension,
+            'salud': calculo.salud_empleado,
+            'pension': calculo.pension_empleado,
             'arl': calculo.arl,
-            'transporte': calculo.transporte,
-            'sena': calculo.sena,
-            'ICBF': calculo.icbf,
-            'CajaCompensa': calculo.cajaCompensacion,
             'cesantias': calculo.cesantias,
-            'intereses_cesantias': calculo.interesCesantias,
+            'intereses_cesantias': calculo.intereses_cesantias,
             'valor_vacaciones': calculo.vacaciones,
-            'dias_vacaciones': calculo.dias_vacaciones,
-            'HorasExDiu': calculo.HorasExDiu,
-            'HorasExNoc': calculo.HorasExNoc,
-            'HorasExFestivaDiu': calculo.HorasExFestivaDiu,
-            'HorasExFestivaNoc': calculo.HorasExFestivaNoc,
-            'recargoDiuFes': calculo.recargoDiuFes,
-            'recargoNoc': calculo.recargoNoc,
-            'recargoNocFest': calculo.recargoNocFest,
+            'dias_vacaciones': dias_vacaciones,
+            'antiguedad':dias_antiguedad,
+            'fecha_ingreso':contrato.fecha_inicio,
+            'transporte':transporte_formatted,
+            'salud_empre':calculo.salud_empresa,
+            'pension_empre':calculo.pension_empresa,
+            
+            # 'HorasExDiu': calculo.HorasExDiu,
+            # 'HorasExNoc': calculo.HorasExNoc,
+            # 'HorasExFestivaDiu': calculo.HorasExFestivaDiu,
+            # 'HorasExFestivaNoc': calculo.HorasExFestivaNoc,
+            # 'recargoDiuFes': calculo.recargoDiuFes,
+            # 'recargoNoc': calculo.recargoNoc,
+            # 'recargoNocFest': calculo.recargoNocFest,
             'salario_total': salario_total,
             'calculo': calculo
         }
@@ -768,15 +822,76 @@ class CalculosGenerales(HttpRequest):
 
     def obtener_todos_los_calculos(request, numero_identificacion_e):
         empleado = get_object_or_404(Empleado, pk=numero_identificacion_e)
-        todos_los_calculos = Liquidacion.objects.filter(documento=empleado)
-        
+        todos_los_calculos = Liquidacion.objects.filter(numero_identificacion_e=empleado)
+        nit = empleado.nit
+       
         # Prepara el contexto
         context = {
             'calculos': todos_los_calculos,
-            'empleado': empleado
+            'empleado': empleado,
+            'empresa': nit
         }
         
         # Renderiza la plantilla 'HistoricoGeneral.html' con el contexto generado
         return render(request, 'empresarial/HistoricoGeneral.html', context)
 
+        
+class GestionUsuarios(HttpRequest):
+    
+    
+    def listar_usuarios(request):
+        usuarios = Usuarios.objects.all()
+        return render(request, 'empresarial/gestionGeneral.html', {'usuarios': usuarios})
+    
+    def crear_usuario(request):
+        if request.method == 'POST':
+            form = CrearUsuarioForm(request.POST)
+            if form.is_valid():
+                form.save()  # Guardar el usuario con la contraseña encriptada
+                return redirect('listar_usuarios')  # Redirige a la lista de usuarios (ajusta la URL si es necesario)
+        else:
+            form = CrearUsuarioForm()
 
+        return render(request, 'empresarial/registroUsuarios.html', {'form': form})
+    
+    def modificarUsuario(request, id_usu):
+        usuario = get_object_or_404(Usuarios, pk=id_usu)
+
+        if request.method == 'POST':
+            form = UsuarioForm(request.POST, instance=usuario)
+            if form.is_valid():
+                form.save()
+                return redirect('listar_usuarios') 
+        else:
+            form = UsuarioForm(instance=usuario)
+
+        return render(request, 'empresarial/modificacionUsuarios.html', {'form': form, 'usuario': usuario})
+    
+class Porcentajes(HttpRequest):   
+    
+    def listar_porcentajes_legales(request):
+        porcentajes_legales = PorcentajesLegales.objects.all()
+        return render(request, 'empresarial/verPorcentajes.html', {'porcentajes_legales': porcentajes_legales})
+    
+    def crear_porcentajes_legales(request):
+        if request.method == 'POST':
+            form = PorcentajesLegalesForm(request.POST)
+            if form.is_valid():
+                form.save()  # Guardar el registro
+                return redirect('ListarEmpresa')  # Redirige a la lista de porcentajes legales (ajusta la URL si es necesario)
+        else:
+            form = PorcentajesLegalesForm()
+
+        return render(request, 'empresarial/porcentajes.html', {'form': form})
+    
+    def actualizar_porcentajes_legales(request, pk):
+        porcentaje_legales = get_object_or_404(PorcentajesLegales, pk=pk)
+        if request.method == 'POST':
+            form = PorcentajesLegalesForm(request.POST, instance=porcentaje_legales)
+            if form.is_valid():
+                form.save()  # Guardar el registro actualizado
+                return redirect('ListarEmpresa')  # Redirige a la lista de porcentajes legales (ajusta la URL si es necesario)
+        else:
+            form = PorcentajesLegalesForm(instance=porcentaje_legales)
+
+        return render(request, 'empresarial/porcentajes.html', {'form': form})

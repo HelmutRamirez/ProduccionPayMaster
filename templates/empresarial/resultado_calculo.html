@@ -2,87 +2,173 @@
 
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Resultado de Cálculo</title>
-    <link rel="stylesheet" type="text/css" href="{% static './css/tablas.css' %}">
-</head>
-<body>
-    <div class="contenedor">
-        <h1>Resultado de Cálculo {{ transporte }}</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Empresas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <link rel="stylesheet" href="{% static 'css/tablas.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/home.css' %}" />
+    <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
 
-        <!-- Tabla de Devengos -->
-        <h2>Devengos</h2>
-        <table>
-            <tr>
-                <th>Transporte</th>
-                <th>Cesantías</th>
-                <th>Intereses de Cesantías</th>
-                <th>Antiguedad</th>
-                <th>Vacaciones</th>
-                <th>Días de Vacaciones</th>
-                <th>Horas Extras Diurnas</th>
-                <th>Horas Extras Nocturnas</th>
-                <th>Horas Extras Diurnas Festivas</th>
-                <th>Horas Extras Nocturnas Festivas</th>
-            </tr>
-            <tr>
-                <td>{{ transporte|floatformat:"0" }}</td>
-                <td>{{ cesantias|floatformat:"0" }}</td>
-                <td>{{ intereses_cesantias|floatformat:"0" }}</td>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      var idleTime = 0
+      
+      function timerIncrement() {
+        idleTime++
+        if (idleTime > 400) {
+          alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
+          window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
+        }
+      }
+      
+      $(document).ready(function () {
+        var idleInterval = setInterval(timerIncrement, 5000)
+      
+        $(this).mousemove(function (e) {
+          idleTime = 0
+          keepSessionAlive()
+        })
+        $(this).keypress(function (e) {
+          idleTime = 0
+          keepSessionAlive()
+        })
+      })
+      
+      function keepSessionAlive() {
+        $.get("{% url 'keep_session_alive' %}")
+      }
+      
+      window.addEventListener('popstate', function (event) {
+        // Prevenir el comportamiento por defecto
+        event.preventDefault()
+      
+        // Mostrar alerta antes de cerrar sesión
+        alert('Su sesión ha expirado. Será redirigido para Iniciar sesión.')
+      
+        // Enviar la solicitud POST para cerrar sesión
+        fetch('{% url "cerrar_sesion_redirect_e" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({})
+        })
+          .then((response) => {
+            if (response.ok) {
+              // Redirigir a la página de inicio de sesión después de cerrar sesión
+              window.location.href = '{% url "loginEmpresa" %}'
+            }
+          })
+          .catch((error) => {
+            console.error('Error al cerrar sesión:', error)
+            // Opcional: Manejar errores si es necesario
+          })
+      })
+    </script>
+  </head>
 
-                <td>Ingreso:{{ dias_trabajados }},{{ dias_antiguedad }}dias de antiguedad</td>
+  <body>
+    {% if request.session.estadoSesion %}
+      {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHHL' or request.session.permisos == 'RRHH' or request.session.permisos == 'Admin' or request.session.permisos == 'Empleado General' %}
+        <div class="contenedor">
+          <ul class="nav justify-content-end">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'ListarEmpleados' empresa.nit %}">Empleados de {{ empresa.razon_social }}</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'todos_los_calculos' empleadoC.numero_identificacion_e %}">Nominas de {{ empleadoC.primer_nombre }} {{ empleadoC.primer_apellido }} Id: {{ empleadoC.numero_identificacion_e }}</a>
+            </li>
 
-                <td>{{ valor_vacaciones|floatformat:"0" }}</td>
-                <td>{{ dias_vacaciones|floatformat:"0" }}</td>
-                <td>{{ valor_horas_extras.diurna|floatformat:"0" }}</td>
-                <td>{{ valor_horas_extras.nocturna|floatformat:"0" }}</td>
-                <td>{{ valor_horas_extras.diurna_festiva|floatformat:"0" }}</td>
-                <td>{{ valor_horas_extras.nocturna_festiva|floatformat:"0" }}</td>
-            </tr>
-        </table>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesion</a>
+            </li>
+          </ul>
 
-        <!-- Tabla de Deducciones -->
-        <h2>Deducciones</h2>
-        <table>
-            <tr>
-                <th>Salud</th>
-                <th>Pensión</th>
-            </tr>
-            <tr>
-                <td>{{ salud|floatformat:"0" }}</td>
-                <td>{{ pension|floatformat:"0" }}</td>
-            </tr>
-        </table>
+          <h1>Resultado de Cálculo {{ transporte }}</h1>
 
-        <!-- Tabla de Pagos que realiza la Empresa -->
-        <h2>Pagos que realiza la Empresa</h2>
-        <table>
-            <tr><th>Salud</th>
-                <th>Pension</th>
-                <th>ARL</th>
-                <th>SENA</th>
-                <th>ICBF</th>
-                <th>Caja de Compensación</th>
+          <!-- Tabla de Devengos -->
+          <h2>Devengos</h2>
+          <table>
+            <tr>
+              <th>Transporte</th>
+              <th>Cesantías</th>
+              <th>Intereses de Cesantías</th>
+              <th>Antiguedad</th>
+              <th>Vacaciones</th>
+              <th>Días de Vacaciones</th>
+              <th>Horas Extras Diurnas</th>
+              <th>Horas Extras Nocturnas</th>
+              <th>Horas Extras Diurnas Festivas</th>
+              <th>Horas Extras Nocturnas Festivas</th>
             </tr>
             <tr>
-                <td>{{ salud_empeador|floatformat:"0" }}</td>
-                <td>{{ pension_empleador|floatformat:"0" }}</td>
-                <td>{{ arl|floatformat:"0" }}</td>
-                <td>{{ sena|floatformat:"0" }}</td>
-                <td>{{ ICBF|floatformat:"0" }}</td>
-                <td>{{ CajaCompensa|floatformat:"0" }}</td>
-            </tr>
-        </table>
-        <h2>Total a pagar</h2>
-        <table>
+              <td>{{ transporte|floatformat:'0' }}</td>
+              <td>{{ cesantias|floatformat:'0' }}</td>
+              <td>{{ intereses_cesantias|floatformat:'0' }}</td>
 
-            <tr>
-                <td>{{ salario_total|floatformat:"0" }}</td>
+              <td>Ingreso:{{ dias_trabajados }},{{ dias_antiguedad }}dias de antiguedad</td>
+
+              <td>{{ valor_vacaciones|floatformat:'0' }}</td>
+              <td>{{ dias_vacaciones|floatformat:'0' }}</td>
+              <td>{{ valor_horas_extras.diurna|floatformat:'0' }}</td>
+              <td>{{ valor_horas_extras.nocturna|floatformat:'0' }}</td>
+              <td>{{ valor_horas_extras.diurna_festiva|floatformat:'0' }}</td>
+              <td>{{ valor_horas_extras.nocturna_festiva|floatformat:'0' }}</td>
             </tr>
-        </table>
-        <br>
-        <a class="a" href="{% url 'ListarEmpleados' empresa %}">Volver a la lista de empleados</a>
-    </div>
-</body>
+          </table>
+
+          <!-- Tabla de Deducciones -->
+          <h2>Deducciones</h2>
+          <table>
+            <tr>
+              <th>Salud</th>
+              <th>Pensión</th>
+            </tr>
+            <tr>
+              <td>{{ salud|floatformat:'0' }}</td>
+              <td>{{ pension|floatformat:'0' }}</td>
+            </tr>
+          </table>
+
+          <!-- Tabla de Pagos que realiza la Empresa -->
+          <h2>Pagos que realiza la Empresa</h2>
+          <table>
+            <tr>
+              <th>Salud</th>
+              <th>Pension</th>
+              <th>ARL</th>
+              <th>SENA</th>
+              <th>ICBF</th>
+              <th>Caja de Compensación</th>
+            </tr>
+            <tr>
+              <td>{{ salud_empeador|floatformat:'0' }}</td>
+              <td>{{ pension_empleador|floatformat:'0' }}</td>
+              <td>{{ arl|floatformat:'0' }}</td>
+              <td>{{ sena|floatformat:'0' }}</td>
+              <td>{{ ICBF|floatformat:'0' }}</td>
+              <td>{{ CajaCompensa|floatformat:'0' }}</td>
+            </tr>
+          </table>
+          <h2>Total a pagar</h2>
+          <table>
+            <tr>
+              <td>{{ salario_total|floatformat:'0' }}</td>
+            </tr>
+          </table>
+          <br />
+        </div>
+      {% else %}
+        <h1>El usuario no tiene permisos suficientes</h1>
+      {% endif %}
+    {% else %}
+      <h1>El usuario no ha iniciado sesión</h1>
+      <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
+    {% endif %}
+  </body>
 </html>

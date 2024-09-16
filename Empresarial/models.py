@@ -11,21 +11,7 @@ from django.utils import timezone # type: ignore
 from django.utils.timezone import timedelta # type: ignore
 
 
-class Departamento(models.Model):
-    codigo_departamento = models.CharField(max_length=10, primary_key=True)
-    nombre_departamento = models.CharField(max_length=100)
-    def __str__(self):
-            return f'{self.nombre_departamento}'
-        
-        
-class Ciudad(models.Model):
-    
-    codigo_ciudad = models.CharField(max_length=10, primary_key=True)
-    nombre_ciudad = models.CharField(max_length=80)
-    codigo_departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE)
-    def __str__(self):
-                return f'{self.nombre_ciudad}'
-            
+
 
 class Empresa(models.Model):
     nit = models.CharField(max_length=11, primary_key=True)
@@ -36,14 +22,6 @@ class Empresa(models.Model):
     def __str__(self):
                 return f'{self.razon_social}'
        
-            
-class Sede(models.Model):
-    id_sede = models.AutoField(primary_key=True)
-    nombre_sede = models.CharField(max_length=100)
-    direccion_sede = models.CharField(max_length=255)
-    codigo_ciudad = models.ForeignKey(Ciudad, on_delete=models.CASCADE)
-    nit = models.ForeignKey(Empresa, on_delete=models.CASCADE)
-
 
 class NivelEstudio(models.Model):
     id_nivel_estudio = models.AutoField(primary_key=True)
@@ -100,6 +78,9 @@ class Empleado(models.Model):
     nit = models.ForeignKey(Empresa, on_delete=models.CASCADE, null=True, blank=True)
     id_nivel_estudio = models.ForeignKey(NivelEstudio, on_delete=models.CASCADE)
     imagen_empleado=models.ImageField(upload_to='photos')
+    def __str__(self):
+                return f'{self.numero_identificacion_e}'
+    
     
 class Contrato(models.Model):
     tipo_contrato=[
@@ -135,6 +116,7 @@ class Liquidacion(models.Model):
     numero_identificacion_e = models.ForeignKey(Empleado, on_delete=models.CASCADE)
     total_antes_deducciones = models.DecimalField(max_digits=10, decimal_places=2)
     total_final = models.DecimalField(max_digits=10, decimal_places=2)
+    empresa=models.IntegerField(null=True)
 
 
 class vacacionesCesantias(models.Model):
@@ -172,13 +154,14 @@ class PasswordResetRequest(models.Model):
 class Usuarios(models.Model):
     id_rol=[
         ('Admin', 'Admin'),
-        ('Contador', 'Contador'),
+        ('ContadorL', 'ContadorL'),
         ('Auxiliar Contable', 'Auxiliar Contable'),
+        ('RRHHL', 'RRHHL'),
         ('RRHH', 'RRHH'),
         ('Empleado General', 'Empleado General'),
     ]
 
-    usuario = models.ForeignKey(Empleado, on_delete=models.CASCADE) 
+    usuario = models.ForeignKey(Empleado, on_delete=models.CASCADE, null=True, blank=True) 
     intentos = models.IntegerField(default=0)
     estado_u = models.BooleanField(default=False)
     contrasena = models.CharField(max_length=88)
@@ -201,3 +184,37 @@ class HorasExtrasRecargos(models.Model):
         recargoDiuFes=models.IntegerField(blank=True,null=True)
         recargoNoc=models.IntegerField(blank=True,null=True)
         recargoNocFest=models.IntegerField(blank=True,null=True)
+        
+class PorcentajesLegales(models.Model):
+    # Porcentajes de salud
+    salud_empleado = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de salud a cargo del empleado ejemplo: 4 % ingrese 0.04")
+    salud_empresa = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de salud a cargo de la empresa")
+    
+    # Porcentajes de pensión
+    pension_empleado = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de pensión a cargo del empleado")
+    pension_empresa = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de pensión a cargo de la empresa")
+    
+    # Otros porcentajes de prestaciones
+    vacaciones = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de vacaciones")
+    cesantias = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de cesantías")
+    intereses_cesantias = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de intereses sobre cesantías")
+    
+    # Contribuciones parafiscales
+    icbf = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de contribución al ICBF")
+    sena = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de contribución al SENA")
+    caja_compensacion = models.DecimalField(max_digits=5, decimal_places=4, help_text="Porcentaje de contribución a la caja de compensación")
+
+    # Riesgo de trabajo y transporte
+    riesgo_laboral1 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 1")
+    riesgo_laboral2 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 2")
+    riesgo_laboral3 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 3")
+    riesgo_laboral4 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 4")
+    riesgo_laboral5 = models.DecimalField(max_digits=6, decimal_places=5, help_text="Porcentaje de riesgo laboral - Clase 5")
+    
+    auxilio_transporte = models.IntegerField( help_text="Monto del auxilio de transporte")
+    
+    fecha_vigencia = models.DateField(help_text="Fecha de inicio de vigencia de estos porcentajes")
+    vigente=models.BooleanField(default=True)
+    
+    def __str__(self):
+        return f"Porcentajes Legales - Vigencia desde {self.fecha_vigencia}"

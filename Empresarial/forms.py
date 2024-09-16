@@ -1,9 +1,10 @@
 
 from datetime import timedelta
 from django import forms   # type: ignore 
-from .models import Empleado,Usuarios,Empresa, Liquidacion,HorasExtrasRecargos,Contrato
+from .models import Empleado, PorcentajesLegales,Usuarios,Empresa, Liquidacion,HorasExtrasRecargos,Contrato
 from django.core.exceptions import ValidationError # type: ignore
 from django.utils import timezone # type: ignore
+from django.contrib.auth.hashers import make_password
 
 class ContratoForm(forms.ModelForm):
     class Meta:
@@ -78,12 +79,12 @@ class EmpleadoForm(forms.ModelForm):
         #Este codigo permite bloquear los espacios pero afecta cuando se va a registrar un nuevo empleado, entonces hace falta adaptarlo solo para el fomrulario de modificar
         # ['numero_identificacion', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido', 'estado_civil']
 
-    # def __init__(self, *args, **kwargs):
-    #     super(EmpleadoForm, self).__init__(*args, **kwargs)
-    #     readonly_fields = ['numero_identificacion', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido']
-    #     for filtro in self.fields:
-    #         if filtro in readonly_fields:
-    #             self.fields[filtro].widget.attrs['readonly'] = True
+    def __init__(self, *args, **kwargs):
+        super(EmpleadoForm, self).__init__(*args, **kwargs)
+        readonly_fields = ['numero_identificacion', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido']
+        for filtro in self.fields:
+            if filtro in readonly_fields:
+                self.fields[filtro].widget.attrs['readonly'] = True
 
 class LoginForm(forms.Form):
     numero_identificacion = forms.IntegerField(label='Número de identificación')
@@ -141,3 +142,68 @@ class HorasExtrasForm(forms.ModelForm):
             raise forms.ValidationError('La suma de horas no puede exceder 48.')
 
         return cleaned_data
+class PorcentajesLegalesForm(forms.ModelForm):
+    class Meta:
+        model = PorcentajesLegales
+        fields = [
+            'salud_empleado', 'salud_empresa', 'pension_empleado', 'pension_empresa',
+            'vacaciones', 'cesantias', 'intereses_cesantias', 'icbf', 'sena', 'caja_compensacion',
+            'riesgo_laboral1', 'riesgo_laboral2', 'riesgo_laboral3', 'riesgo_laboral4', 'riesgo_laboral5',
+            'auxilio_transporte', 'fecha_vigencia'
+        ]
+        widgets = {
+            'fecha_vigencia': forms.DateInput(attrs={'type': 'date'})
+        }
+        
+class CrearUsuarioForm(forms.ModelForm):
+    contrasena = forms.CharField(
+        label='Contraseña',
+        widget=forms.PasswordInput,
+        required=True,
+    )
+
+    class Meta:
+        model = Usuarios
+        fields = ['usuario', 'intentos', 'estado_u', 'contrasena', 'rol']
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        usuario.contrasena = make_password(self.cleaned_data['contrasena'])  # Encriptar la contraseña
+        if commit:
+            usuario.save()
+        return usuario
+    
+
+class UsuarioForm(forms.ModelForm):
+    ESTADO_CHOICES = [
+        (1, 'Activo'),
+        (0, 'Inactivo'),
+    ]
+    
+    estado_u = forms.ChoiceField(choices=ESTADO_CHOICES, label='Estado')
+    contrasena = forms.CharField(
+        label='Nueva Contraseña',
+        widget=forms.PasswordInput,
+        required=False,  # No se requiere obligatoriamente para que permita actualizar sin cambiar la contraseña
+    )
+
+    class Meta:
+        model = Usuarios
+        fields = ['usuario', 'intentos', 'estado_u', 'contrasena', 'rol']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['estado_u'].initial = self.instance.estado_u
+
+    def save(self, commit=True):
+        """ Sobreescribir save para gestionar la actualización de la contraseña """
+        usuario = super().save(commit=False)
+        nueva_contrasena = self.cleaned_data.get('contrasena')
+        
+        if nueva_contrasena:  # Si se ha ingresado una nueva contraseña
+            usuario.set_password(nueva_contrasena)
+        
+        if commit:
+            usuario.save()
+        return usuario

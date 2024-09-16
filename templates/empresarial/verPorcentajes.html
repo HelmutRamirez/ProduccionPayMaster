@@ -1,3 +1,4 @@
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -9,14 +10,15 @@
     <link rel="stylesheet" href="{% static 'css/tablas.css' %}" />
     <link rel="stylesheet" href="{% static 'css/home.css' %}" />
     <link rel="shortcut icon" href="{% static 'image/logo2.png' %}" type="image/x-icon" />
-
+    <script src="{% static 'js/session_monitor.js' %}" defer></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
       var idleTime = 0
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 400) {
+        if (idleTime > 4) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }
@@ -70,67 +72,78 @@
   </head>
 
   <body>
-   
     {% if request.session.estadoSesion %}
-      {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' or request.session.permisos == 'Empleado General' %}
+      {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'RRHH' or request.session.permisos == 'RRHHL' or request.session.permisos == 'Admin' %}
         <div class="contenedor">
           <ul class="nav justify-content-end">
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
+              <a class="nav-link active" aria-current="page" href="{% url 'ListarEmpresa' %}">Empresas</a>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'ListarEmpleados' empresa.nit %}">Empleados de {{ empresa.razon_social }}</a>
-            </li>
-
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesion</a>
+    
+            <li class="nav-item" style="float: right; margin-right: 0;">
+              <a class="nav-link active" href="{% url 'cerrar_sesion_redirect_e' %}">Cerrar Sesión</a>
             </li>
           </ul>
-          <h1>Todos los Cálculos</h1>
+          <h1>Lista de Porcentajes Legales</h1>
           <table>
             <thead>
               <tr>
-                <th>Documento</th>
-                <th>Salud</th>
-                <th>Pensión</th>
-                <th>ARL</th>
-                <th>Transporte</th>
-                <th>Caja Compensación</th>
-                <th>Salario Base</th>
-                {% if calculo.sena %}
-                  <th>SENA</th>
-                {% endif %}
-                {% if calculo.icbf %}
-                  <th>ICBF</th>
-                {% endif %}
-                <th>Fecha de Cálculo</th>
-
-                <th>Accion</th>
+                <th>ID</th>
+                <th>Salud Empleado</th>
+                <th>Salud Empresa</th>
+                <th>Pensión Empleado</th>
+                <th>Pensión Empresa</th>
+                <th>Vacaciones</th>
+                <th>Cesantías</th>
+                <th>Intereses de Cesantías</th>
+                <th>ICBF</th>
+                <th>SENA</th>
+                <th>Caja de Compensación</th>
+                <th>Riesgo Laboral 1</th>
+                <th>Riesgo Laboral 2</th>
+                <th>Riesgo Laboral 3</th>
+                <th>Riesgo Laboral 4</th>
+                <th>Riesgo Laboral 5</th>
+                <th>Auxilio de Transporte</th>
+                <th>Fecha de Vigencia</th>
+                <th>Vigente</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {% for calculo in calculos %}
+              {% for porcentaje in porcentajes_legales %}
                 <tr>
-                  <td>{{ calculo.numero_identificacion_e.numero_identificacion_e }}</td>
-                  <td>{{ calculo.salud_empleado }}</td>
-                  <td>{{ calculo.pension_empleado }}</td>
-                  <td>{{ calculo.arl }}</td>
-                  <td>tranpsote</td>
-                  <td>{{ calculo.caja_compensacion }}</td>
-                  <td>{{ calculo.total_antes_deducciones }}</td>
-                  <td>{{ calculo.fecha_calculo }}</td>
-
+                  <td>{{ porcentaje.id }}</td>
+                  <td>{{ porcentaje.salud_empleado }}</td>
+                  <td>{{ porcentaje.salud_empresa }}</td>
+                  <td>{{ porcentaje.pension_empleado }}</td>
+                  <td>{{ porcentaje.pension_empresa }}</td>
+                  <td>{{ porcentaje.vacaciones }}</td>
+                  <td>{{ porcentaje.cesantias }}</td>
+                  <td>{{ porcentaje.intereses_cesantias }}</td>
+                  <td>{{ porcentaje.icbf }}</td>
+                  <td>{{ porcentaje.sena }}</td>
+                  <td>{{ porcentaje.caja_compensacion }}</td>
+                  <td>{{ porcentaje.riesgo_laboral1 }}</td>
+                  <td>{{ porcentaje.riesgo_laboral2 }}</td>
+                  <td>{{ porcentaje.riesgo_laboral3 }}</td>
+                  <td>{{ porcentaje.riesgo_laboral4 }}</td>
+                  <td>{{ porcentaje.riesgo_laboral5 }}</td>
+                  <td>{{ porcentaje.auxilio_transporte }}</td>
+                  <td>{{ porcentaje.fecha_vigencia }}</td>
+                  <td>{{ porcentaje.vigente }}</td>
                   <td>
-                    <a class="a" href="{% url 'verNomina' documento=calculo.numero_identificacion_e.numero_identificacion_e fecha=calculo.fecha_calculo %}">Ver nomina</a>
+                    <a href="{% url 'actualizar_porcentajes_legales' pk=porcentaje.id %}">Editar</a>
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
-          <br />
+         
         </div>
       {% else %}
-        <h1>El usuario no tiene permisos suficientes</h1>
+        <h1>El usuario no tiene permisos</h1>
+        <a class="link" href="{% url 'loginEmpresa' %}">Iniciar sesión</a>
       {% endif %}
     {% else %}
       <h1>El usuario no ha iniciado sesión</h1>

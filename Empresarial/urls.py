@@ -35,7 +35,19 @@ urlpatterns = [
     
     #Gestion de Calculos
     path('calcular/<int:numero_identificacion_e>/', views.CalculosGenerales.calcularSalario, name='calcularemple'),
-    # path('registro_novedades/<int:numero_identificacion>/', views.CalculosGenerales.registroNovedades, name='registroNovedades'),
+    # path('registro_novedades/<int:numero_identificacion>/', views.CalculosGenerales.registroNovedades, name='registroNovedades'),novedades acaaaaaaaaaaaa
     path('calculos/<str:documento>/<str:fecha>/', views.CalculosGenerales.HistorialNomina, name='verNomina'),
-    path('todos_los_calculos<int:numero_identificacion_e>/', views.CalculosGenerales.obtener_todos_los_calculos, name='todos_los_calculos'),
+    path('todos_los_calculos/<int:numero_identificacion_e>/', views.CalculosGenerales.obtener_todos_los_calculos, name='todos_los_calculos'),
+
+    #gestion usuarios
+    path('usuarios/', views.GestionUsuarios.listar_usuarios, name='listar_usuarios'),
+    path('editar/<int:id_usu>/', views.GestionUsuarios.modificarUsuario, name='editarUsuarioG'),
+    path('crearUsuario//', views.GestionUsuarios.crear_usuario, name='creacionUsuario'),
+    
+    #Actualizar porcentajes
+    # path('porcentajes/', views.Porcentajes.gestionar_porcentajes, name='porcentajes'),
+    path('porcentajes/create/', views.Porcentajes.crear_porcentajes_legales, name='crear_porcentajes_legales'),
+    path('porcentajes/<int:pk>/update/', views.Porcentajes.actualizar_porcentajes_legales, name='actualizar_porcentajes_legales'),
+    path('porcentajes/', views.Porcentajes.listar_porcentajes_legales, name='listar_porcentajes_legales'),
+    
 ]
