@@ -473,8 +473,8 @@ class GestionarEmpresa(HttpRequest):
 
     
 class CalculosGenerales(HttpRequest):
-    
     porcentaje= PorcentajesLegales.objects.filter(vigente=True).first()
+   
     
     def calcularSalario(request, numero_identificacion_e):
        
