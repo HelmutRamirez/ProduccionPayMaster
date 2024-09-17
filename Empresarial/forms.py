@@ -95,7 +95,7 @@ class EmpleadoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EmpleadoForm, self).__init__(*args, **kwargs)
-        readonly_fields = ['numero_identificacion', 'primer_nombre', 'segundo_nombre', 'primer_apellido', 'segundo_apellido']
+        readonly_fields = ['numero_identificacion']
         for filtro in self.fields:
             if filtro in readonly_fields:
                 self.fields[filtro].widget.attrs['readonly'] = True

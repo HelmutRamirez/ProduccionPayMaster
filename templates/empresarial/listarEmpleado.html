@@ -16,7 +16,7 @@
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 4) {
+        if (idleTime > 60) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }
@@ -132,9 +132,9 @@
                                         <br>
                                         <a class="a" href="{% url 'desvincularEmpleado' empleado_data.empleado.numero_identificacion_e %}">Eliminar empleado del listado</a><br />
                                         <br />
-                                        {% if empleado_data.estado == 'Sin informacion' %}
+                                        
                                             <a class="a" href="{% url 'registContrat' empleado_data.empleado.numero_identificacion_e %}">Registrar contrato</a><br /><br />
-                                        {% endif %}
+                                        
                                     {% endif %}
                                     {% if request.session.permisos == 'ContadorL' or request.session.permisos == 'Auxiliar Contable' or request.session.permisos == 'Admin' %}
                                             {% if empleado_data.estado != 'Sin informacion' %}

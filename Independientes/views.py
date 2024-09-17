@@ -238,7 +238,7 @@ class GestionIndependiente():
                         datos_calculos = DatosCalculos(documento=formula)  # Crear una instancia de DatosCalculos con el objeto Independiente
                         datos_calculos.save()  # Guardar los datos de cálculos
                         
-                        # Enviar el correo electrónico con el token para restablecer la contraseña
+                        # Enviar el correo electrónico con el las credenciales para acceder al sistema
                         subject = 'Bienvenido a PayMaster'
                         html_message = render_to_string('independientes/email/envio_credencial.html', {'usuario': formula, 'token': solicitud.token, 'password': raw_password})
                         plain_message = strip_tags(html_message)  # Convertir el mensaje HTML a texto plano

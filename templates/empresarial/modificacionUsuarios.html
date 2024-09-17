@@ -15,7 +15,7 @@
       
       function timerIncrement() {
         idleTime++
-        if (idleTime > 4) {
+        if (idleTime > 60) {
           alert('Su sesión ha expirado. Será redirigido para cerrar sesión.')
           window.location.href = "{% url 'cerrar_sesion_redirect_e' %}"
         }

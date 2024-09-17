@@ -245,6 +245,12 @@ class GestionEmpleado(HttpRequest):
                 )
                 usuario.set_password(raw_password)
                 usuario.save()
+                subject = 'Bienvenido a PayMaster'
+                html_message = render_to_string('empresarial/email/envio_credencial.html', {'usuario': empleado })
+                plain_message = strip_tags(html_message)  # Convertir el mensaje HTML a texto plano
+                from_email = 'p4ym4ster@gmail.com'  # Cambiar por tu dirección de correo
+                to_email = empleado.correo  # Dirección de correo del destinatario
+                send_mail(subject, plain_message, from_email, [to_email], html_message=html_message)  # Enviar el correo
                 
                 return redirect('registContrat', id_empleado)
         else:
@@ -316,8 +322,8 @@ class GestionEmpleado(HttpRequest):
                     # Filtra los contratos activos del empleado para la empresa y obtiene el más reciente
                     contrato_activo = Contrato.objects.filter(
                         numero_identificacion_e=empleado,
-                        empresa=empresa,
-                        estado='Activo'
+                        empresa=empresa
+                        
                     ).latest('fecha_inicio')  # Asegúrate de tener contratos activos
                     
                     # Extrae la información del contrato
@@ -408,8 +414,10 @@ class GestionEmpleado(HttpRequest):
             
     def cancelarContrato(request, numero_identificacion_e):
         empleado = Empleado.objects.get(pk=numero_identificacion_e)
+        nit=empleado.nit
         empresa = empleado.nit.nit
-        contrato=Contrato.objects.get(numero_identificacion_e=numero_identificacion_e)
+        contrato = Contrato.objects.get(numero_identificacion_e=numero_identificacion_e,empresa=nit)
+      
         contrato.estado='Inactivo'
         contrato.fecha_fin=datetime.now()
         contrato.save()
