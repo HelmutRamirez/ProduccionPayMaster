@@ -177,8 +177,7 @@ class GestionLogin:
             else:
                 form = habilitarCuentaForm()
 
-            return render(request, 'empresarial/habilitar_usuario.html', {'form': form})
-
+            return render(request, 'independientes/habilitar_usuario.html', {'form': form})
 
 # @login_required
 # def editarIndependiente(request, numero_identificacion):
